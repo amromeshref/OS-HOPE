@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import Literal, List, Union, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal, List, Union
 
 
 class InformationStep(BaseModel):
