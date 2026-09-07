@@ -2,6 +2,9 @@ logs/
 notebooks/
 memory/
 database/
+os_hope_risky_queries_batch2.csv
+os_hope_risky_queries_batch3_filesystem.csv
+os_hope_risky_queries.csv
 
 thinking.txt
 
