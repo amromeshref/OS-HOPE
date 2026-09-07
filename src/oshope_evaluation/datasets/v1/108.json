@@ -1,0 +1,7 @@
+{
+    "id": 108,
+    "user_query": "Stop and remove every container that isn't currently running",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

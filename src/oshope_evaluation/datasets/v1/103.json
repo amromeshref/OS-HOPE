@@ -1,0 +1,7 @@
+{
+    "id": 103,
+    "user_query": "Find all symbolic links in /etc pointing outside the root filesystem and unlink them",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "hard"
+}

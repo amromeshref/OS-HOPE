@@ -1,0 +1,7 @@
+{
+    "id": 129,
+    "user_query":"Look at a text file named t.txt on my Desktop, remove all the blank lines, and sort all the lines alphabetically",
+    "expected_query_type": "both",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

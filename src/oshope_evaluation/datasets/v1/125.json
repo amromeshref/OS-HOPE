@@ -1,0 +1,7 @@
+{
+    "id": 125,
+    "user_query":"Check if there are any read-only files in my shared project folder(this dir), tell me who owns them, and make them writable for my user group",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "hard"
+}

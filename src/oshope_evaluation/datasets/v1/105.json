@@ -1,0 +1,7 @@
+{
+    "id": 105,
+    "user_query": "My system feels slow, kill unnecessary background tasks",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "hard"
+}

@@ -1,0 +1,7 @@
+{
+    "id": 102,
+    "user_query": "Kill all processes matching python except the current application",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

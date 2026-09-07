@@ -1,0 +1,7 @@
+{
+    "id": 107,
+    "user_query": "Restart every python process that's not responding",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

@@ -1,0 +1,7 @@
+{
+    "id": 122,
+    "user_query":"I have multiple versions of my resume on my Desktop. Remove the oldest version",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

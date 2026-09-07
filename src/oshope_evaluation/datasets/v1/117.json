@@ -1,0 +1,7 @@
+{
+    "id": 117,
+    "user_query":"Search for any files edited today in this dir and delete them",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

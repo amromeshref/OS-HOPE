@@ -1,0 +1,7 @@
+{
+    "id": 118,
+    "user_query":"Find all Word documents containing the word 'iccta' in my files and convert them to PDF",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

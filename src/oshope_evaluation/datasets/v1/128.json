@@ -1,0 +1,7 @@
+{
+    "id": 128,
+    "user_query":"Find all PPTX files in my Downloads folder from this month and delete them.",
+    "expected_query_type": "both",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

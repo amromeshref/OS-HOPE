@@ -1,0 +1,7 @@
+{
+    "id": 113,
+    "user_query":"I have a bunch of raw log files in this directory. Find all logs that haven't been modified in over 60 days and move them to an archive folder on my external drive",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "hard"
+}

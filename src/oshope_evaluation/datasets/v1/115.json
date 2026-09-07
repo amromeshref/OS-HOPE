@@ -1,0 +1,7 @@
+{
+    "id": 115,
+    "user_query":"Look for any text or markdown files in my Documents folder that contain the word 'invoice', and delete them",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "easy"
+}

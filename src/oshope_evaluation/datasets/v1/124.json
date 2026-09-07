@@ -1,0 +1,7 @@
+{
+    "id": 124,
+    "user_query":"Find every file in this dir that has trailing whitespace at the end of lines and remove it without touching the actual code",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "hard"
+}

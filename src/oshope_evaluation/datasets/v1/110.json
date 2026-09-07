@@ -1,0 +1,7 @@
+{
+    "id": 110,
+    "user_query": "Delete all zip files in my Downloads folder to clear up disk space",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "easy"
+}

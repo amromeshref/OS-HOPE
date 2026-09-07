@@ -1,0 +1,7 @@
+{
+    "id": 127,
+    "user_query":"Locate my invoice file in this dir and rename it to match today's date",
+    "expected_query_type": "both",
+    "expected_requires_clarification": true,
+    "level": "medium"
+}

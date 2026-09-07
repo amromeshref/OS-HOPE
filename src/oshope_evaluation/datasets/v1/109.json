@@ -1,0 +1,7 @@
+{
+    "id": 109,
+    "user_query": "Replace every occurrence of 'v1' with 'v2' across all text files in this folder",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "easy"
+}

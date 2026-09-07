@@ -1,0 +1,7 @@
+{
+    "id": 114,
+    "user_query":"Find all broken file shortcuts on my desktop and delete them",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "easy"
+}

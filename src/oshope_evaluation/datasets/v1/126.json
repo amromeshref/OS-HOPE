@@ -1,0 +1,7 @@
+{
+    "id": 126,
+    "user_query":"Search for any text file on my Desktop that contains my social security number or credit card details and delete them",
+    "expected_query_type": "both",
+    "expected_requires_clarification": false,
+    "level": "hard"
+}

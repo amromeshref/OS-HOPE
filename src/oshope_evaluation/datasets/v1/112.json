@@ -1,0 +1,7 @@
+{
+    "id": 112,
+    "user_query":"Find the large video files taking up space in my Downloads directory and remove them",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

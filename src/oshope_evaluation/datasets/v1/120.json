@@ -1,0 +1,7 @@
+{
+    "id": 120,
+    "user_query":"Find all MP4 files recorded last week and delete them.",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

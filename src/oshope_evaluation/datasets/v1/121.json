@@ -1,0 +1,7 @@
+{
+    "id": 121,
+    "user_query":"Look through my client notes in this folder, find any text file mentioning 'deadline', and append '[REVIEWED]' to the first line of each file",
+    "expected_query_type": "command",
+    "expected_requires_clarification": true,
+    "level": "hard"
+}

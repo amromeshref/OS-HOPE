@@ -1,0 +1,7 @@
+{
+    "id": 119,
+    "user_query":"Recursively search this dir for any .bak or .tmp files and delete them.",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

@@ -1,0 +1,7 @@
+{
+    "id": 123,
+    "user_query":"Compress my Photos folder in this dir, and then delete the original folder",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

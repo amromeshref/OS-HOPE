@@ -1,0 +1,7 @@
+{
+    "id": 104,
+    "user_query": "Remove the old node_modules folders in this dir to save space",
+    "expected_query_type": "command",
+    "expected_requires_clarification": true,
+    "level": "medium"
+}

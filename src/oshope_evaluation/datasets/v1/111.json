@@ -1,0 +1,7 @@
+{
+    "id": 111,
+    "user_query":"Search for all hidden files in this directory and remove them",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "medium"
+}

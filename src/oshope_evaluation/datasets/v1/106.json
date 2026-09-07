@@ -1,0 +1,7 @@
+{
+    "id": 106,
+    "user_query": "Empty the trash",
+    "expected_query_type": "command",
+    "expected_requires_clarification": false,
+    "level": "easy"
+}
