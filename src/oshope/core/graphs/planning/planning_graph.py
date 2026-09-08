@@ -3,7 +3,6 @@ from oshope.core.graphs.planning.nodes.planning import planning_node
 from oshope.core.graphs.planning.nodes.user_validation import user_validation_node
 from oshope.core.graphs.planning.routing.logic import (
     route_after_starting,
-    route_after_planning,
 )
 from oshope.config.config import (
     PLANNING_NODE,
@@ -45,14 +44,7 @@ class PlanningGraph(StateGraph):
             },
         )
 
-        graph.add_conditional_edges(
-            PLANNING_NODE,
-            route_after_planning,
-            {
-                END: END,
-                USER_VALIDATION_NODE: USER_VALIDATION_NODE,
-            },
-        )
+        graph.add_edge(PLANNING_NODE, END)
 
         graph.add_edge(USER_VALIDATION_NODE, END)
 
