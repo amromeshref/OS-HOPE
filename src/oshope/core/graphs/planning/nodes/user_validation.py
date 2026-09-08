@@ -2,8 +2,7 @@ from oshope.core.states.oshope_state import OSHopeState, UserValidationState
 from oshope.core.models.main import LLMModel
 from oshope.prompts.user_validation import (
     get_user_validation_sys_prompt,
-    get_phase1_human_message,
-    get_phase2_human_message,
+    get_human_message,
 )
 from oshope.utils.logger import get_logger
 
@@ -24,10 +23,7 @@ def user_validation_node(state: OSHopeState) -> OSHopeState:
 
     llm_model = LLMModel()
     sys_prompt = get_user_validation_sys_prompt()
-    if state.user_validation.is_validation_required:
-        human_message = get_phase2_human_message(state)
-    else:
-        human_message = get_phase1_human_message(state)
+    human_message = get_human_message(state)
 
     while True:
         try:
