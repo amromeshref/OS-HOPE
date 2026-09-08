@@ -1,5 +1,4 @@
 from oshope.core.states.oshope_state import OSHopeState, SummarizerState
-from oshope.config.config import PARALLEL_EXECUTION_ENABLED
 from oshope.core.graphs.execution.parallel.state_manager import update_state
 from oshope.prompts.summarizer import get_summarizer_sys_prompt, get_human_message
 from oshope.utils.logger import get_logger
@@ -68,7 +67,7 @@ def summarizer_node(state: OSHopeState) -> OSHopeState:
         structured_output=SummarizerState,
     )
 
-    if not PARALLEL_EXECUTION_ENABLED:
+    if not state.parallel_execution_enabled:
         state.memory_extraction = response
         state.past_session_summaries.append(response.session_summary)
     else:
