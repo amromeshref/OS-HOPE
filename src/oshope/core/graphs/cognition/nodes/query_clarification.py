@@ -1,7 +1,7 @@
 from oshope.core.states.oshope_state import OSHopeState, QueryClarificationState
 from oshope.prompts.query_clarification import (
     get_query_clarification_sys_prompt,
-    get_fitst_human_message,
+    get_first_human_message,
     get_second_human_message,
 )
 from oshope.utils.logger import get_logger
@@ -27,7 +27,7 @@ def query_clarification_node(state: OSHopeState) -> OSHopeState:
     if state.planning.requires_follow_up:
         human_message = get_second_human_message(state)
     else:
-        human_message = get_fitst_human_message(state)
+        human_message = get_first_human_message(state)
 
     # Generate the classification response from the LLM
     response: QueryClarificationState = llm_model.generate_response(
