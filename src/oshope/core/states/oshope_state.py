@@ -10,6 +10,14 @@ class OSHopeState(BaseModel):
     Represents the state of the OS-HOPE, including any relevant information
     about the current session, user preferences, and system status.
     """
+    # ========== Parallel Processing ==========
+    parallel_execution_enabled: bool = Field(
+        default=False,
+        description=(
+            "Indicates whether parallel execution of steps is enabled. If set to True, the system will attempt to execute multiple steps concurrently, if possible. "
+            "If set to False, the system will execute steps sequentially, one after the other."
+        ),
+    )
 
     # ====== RAG ======
 
@@ -59,7 +67,7 @@ class OSHopeState(BaseModel):
     # ========== Query Classification ==========
 
     query_classification: QueryClassificationState = Field(
-        default=None, description="The classification of the user's query."
+        default=QueryClassificationState(), description="The classification of the user's query."
     )
 
     # This field should be updated by the parsing logic in the query classification node after receiving the response from the LLM
@@ -107,6 +115,11 @@ class OSHopeState(BaseModel):
     planning_status: str = Field(
         default="pending",
         description="The status of the planning process (e.g., 'pending', 'completed', 'error').",
+    )
+
+    plan_presented: bool = Field(
+        default=False,
+        description="Indicates whether the generated plan has been presented to the user for validation.",
     )
 
     # =========== User Validation ===========
