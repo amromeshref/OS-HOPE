@@ -28,7 +28,7 @@ def retrieve_dependency_outputs(state: OSHopeState) -> str:
         dep_output = None
         if state.planning.plan_steps[dep_idx].step_type == "command":
             dep_output = retrieve_execution_details(
-                state, dep_idx, parallel_execution_enabled=False
+                state, dep_idx
             )
         elif state.planning.plan_steps[dep_idx].step_type == "information":
             dep_output = retrieve_information_details(state, dep_idx)
