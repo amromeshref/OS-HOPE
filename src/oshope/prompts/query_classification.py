@@ -55,6 +55,8 @@ Set requires_follow_up = true if ANY of the following apply:
      "Can this be executed RIGHT NOW without clarification?"
    - If NO → requires_follow_up = true
 
+Then, set generated_follow_up_response to a question that asks the user for clarification. This will be sent to the user to ask for clarification.
+   
 STRICT SAFETY RULE:
 
 - NEVER assume missing values for destructive actions
