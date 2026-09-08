@@ -25,11 +25,11 @@ def code_error_handling_node(state: OSHopeState, step_index: int):
 
     if state.planning.plan_steps[step_index].num_error_executions == 0:
         human_message = get_first_human_message(
-            state, step_index=step_index, parallel_execution_enabled=True
+            state, step_index=step_index
         )
     else:
         human_message = get_second_human_message(
-            state, step_index=step_index, parallel_execution_enabled=True
+            state, step_index=step_index
         )
 
     response: CommandErrorHandlerState = llm_model.generate_response(
