@@ -1,5 +1,4 @@
 from oshope.core.states.oshope_state import OSHopeState
-from oshope.config.config import PARALLEL_EXECUTION_ENABLED
 from oshope.utils.helper_functions import get_os_info
 from oshope.utils.helper_functions import (
     command_executions_to_str,
@@ -182,13 +181,12 @@ CRITICAL RULES:
 def retrieve_previous_recovery_outputs(
     state: OSHopeState,
     step_index: int = None,
-    parallel_execution_enabled: bool = PARALLEL_EXECUTION_ENABLED,
 ) -> str:
     """
     Retrieve the previous recovery outputs for Mode 2 operation.
     """
     outputs = []
-    if parallel_execution_enabled:
+    if state.parallel_execution_enabled:
         for i in range(
             1, state.planning.plan_steps[step_index].num_error_executions + 1
         ):
@@ -211,19 +209,18 @@ def retrieve_previous_recovery_outputs(
 def get_first_human_message(
     state: OSHopeState,
     step_index: int = None,
-    parallel_execution_enabled: bool = PARALLEL_EXECUTION_ENABLED,
 ):
     """
     Get the human message for the first turn of the code error handling node.
     """
-    if parallel_execution_enabled:
+    if state.parallel_execution_enabled:
         failed_command_execution = state.planning.plan_steps[
             step_index
         ].command_executions[-1]
     else:
         failed_command_execution = state.command_executions[-1]
 
-    if parallel_execution_enabled:
+    if state.parallel_execution_enabled:
         prompt = f"""
 This is MODE 1: INITIAL RECOVERY. This is the first recovery attempt for a failed command execution.
 Step description: {state.planning.plan_steps[step_index].step_details.description}
@@ -245,20 +242,19 @@ Failed command execution: {command_executions_to_str([failed_command_execution])
 def get_second_human_message(
     state: OSHopeState,
     step_index: int = None,
-    parallel_execution_enabled: bool = PARALLEL_EXECUTION_ENABLED,
-) -> str:
+):
     """
       Get the human message for the second turn of the code error handling node (Mode 2
     operation).
     """
-    if parallel_execution_enabled:
+    if state.parallel_execution_enabled:
         failed_command_execution = state.planning.plan_steps[
             step_index
         ].command_executions[-1]
     else:
         failed_command_execution = state.command_executions[-1]
 
-    if parallel_execution_enabled:
+    if state.parallel_execution_enabled:
         prompt = f"""
 This is mode 2: RETRY RECOVERY. A previous recovery attempts was made but the last suggested command also failed.
 Step description: {state.planning.plan_steps[step_index].step_details.description}
@@ -272,11 +268,11 @@ Failed command execution: {command_executions_to_str([failed_command_execution])
 """
 
     if state.planning.plan_steps[state.current_step_index].dependencies_required:
-        prompt += f"\nDependency outputs: {retrieve_dependency_outputs(state=state, parallel_execution_enabled=parallel_execution_enabled)}"
+        prompt += f"\nDependency outputs: {retrieve_dependency_outputs(state=state)}"
 
     prompt += f"""
 Previous recovery outputs (from most recent to oldest): 
-{retrieve_previous_recovery_outputs(state=state, step_index=step_index, parallel_execution_enabled=parallel_execution_enabled)}
+{retrieve_previous_recovery_outputs(state=state, step_index=step_index)}
 """
 
     return prompt
