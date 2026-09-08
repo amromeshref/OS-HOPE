@@ -98,7 +98,7 @@ class SequentialExecutionGraph:
         graph.add_edge(CODE_ERROR_HANDLING_NODE, CODE_EXECUTION_NODE)
         graph.add_edge(FINAL_RESPONSE_NODE, END)
 
-        logger.info("Execution graph built successfully.")
+        logger.info("Sequential execution graph built successfully.")
 
         return graph
 
@@ -107,14 +107,14 @@ class SequentialExecutionGraph:
         Compile the execution graph to prepare it for execution.
         """
         self.compiled_graph = self.graph.compile()
-        logger.info("Execution graph compiled successfully.")
+        logger.info("Sequential execution graph compiled successfully.")
 
     def execute(self, initial_state: OSHopeState) -> OSHopeState:
         """
         Execute the compiled graph starting from the initial state and return the final state after execution.
         """
-        logger.info("Executing the Execution graph.")
+        logger.info("Executing the Sequential Execution graph.")
         final_state = self.compiled_graph.invoke(initial_state)
         final_state = OSHopeState(**final_state)
-        logger.info("The Execution Graph execution completed.")
+        logger.info("The Sequential Execution Graph execution completed.")
         return final_state
