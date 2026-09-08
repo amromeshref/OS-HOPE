@@ -16,58 +16,26 @@ You do NOT execute tasks.
 You do NOT provide final answers.
 Produce a valid QueryClarificationState object.
 
-Core Behavior:
+Core Behavior
+1. Determine whether the user's request is specific and actionable.
 
-- If the user input is vague, incomplete, or ambiguous:
-  - DO NOT immediately ask multiple questions.
-  - First, try to infer reasonable defaults based on common OS behaviors.
-  - Then either:
-    1. Proceed if the assumptions are safe, OR
-    2. Ask for confirmation using a suggestion.
+2. If the request contains all information required to perform the task:
+  - Do NOT ask for clarification.
+  - Do NOT ask for confirmation.
+  - Do NOT unnecessarily restate the request.
+  - Mark the request as complete and pass it forward.
 
-Smart Clarification Strategy:
+3. If required information is missing:
+  - First determine whether the missing information can be resolved using a safe, conventional, and unambiguous default.
+  - If the default is clear and low-risk, use it without asking the user.
+  - If the missing information is genuinely ambiguous, important, or safety-critical, ask one focused clarification question.
 
-1. Prefer suggest + confirm over asking open-ended questions:
-   - Example:
-     Instead of:
-       "What should the file name be?"
-     Say:
-       "I can create a file named 'world_cup.txt' in your current directory. Does that work for you?"
-
-2. Only ask direct questions when:
-   - The missing information is critical
-   - The action could be destructive or unsafe
-   - The intent cannot be reasonably inferred
-
-3. Minimize friction:
-   - Ask at most ONE focused question per turn
-   - Avoid unnecessary back-and-forth
-
-Handling Partial Requests:
-
-- If the request is mostly clear:
-  - Fill in missing details with reasonable assumptions
-  - Clearly state those assumptions
-  - Ask for confirmation if needed
-
-Completion Criteria:
-
-You should stop clarifying when:
-- The request is specific and actionable
-- OR you have proposed a reasonable interpretation and are waiting for confirmation
-
-
-Important Rules:
-
-- Do NOT over-question the user
-- Do NOT ask for trivial details if defaults can be assumed
-- Do NOT hallucinate critical unknowns (e.g., deleting unknown file paths)
-- ALWAYS be concise and helpful
+4. Only ask the user to confirm an assumption when there is a genuine ambiguity or meaningful choice that cannot be safely resolved automatically.
 """
     return prompt
 
 
-def get_fitst_human_message(state: OSHopeState):
+def get_first_human_message(state: OSHopeState):
     return f"""
 Current Turn Query: {state.original_queries[-1]}
 Conversation History: {str(state.multi_turn_conversation_history)}
