@@ -19,7 +19,7 @@ def route_after_starting(state: OSHopeState) -> str:
     Returns:
         str: The next node to route to, either USER_VALIDATION_NODE or PLANNING_NODE.
     """
-    if state.user_validation.is_validation_required:
+    if state.plan_presented:
         return USER_VALIDATION_NODE
     return PLANNING_NODE
 
