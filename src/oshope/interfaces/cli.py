@@ -1,3 +1,5 @@
+from time import time
+
 from oshope.core.graphs.cognition.cognition_graph import CognitionGraph
 from oshope.core.graphs.planning.planning_graph import PlanningGraph
 from oshope.core.graphs.execution.sequential.execution_graph import (
@@ -10,22 +12,26 @@ from oshope.interfaces.voice_input.main import VoiceInputInterface
 from oshope.core.states.oshope_state import OSHopeState
 from oshope.config.config import VOICE_INPUT_ENABLED, RAG_ENABLED, DEBUG_MODE
 from oshope.tools.rag.main import RAGTool
-from oshope.utils.helper_functions import save_debug_state
+from oshope.utils.helper_functions import save_debug_state, format_plan_for_user
 from rich.console import Console
 from rich.markdown import Markdown
 import argparse
+import time
 
 
 class OSHopeApp:
-    def __init__(self, use_voice=False):
+    def __init__(self, use_voice=False, parallel_execution_enabled=PARALLEL_EXECUTION_ENABLED):
         self.use_voice = use_voice
+        self.parallel_execution_enabled = parallel_execution_enabled
         self.equal_num = 50
+        self.execution_time = 0.0
+        self.timer_start = None
 
         # Graphs
         self.cognition_graph = CognitionGraph()
         self.planning_graph = PlanningGraph()
 
-        if PARALLEL_EXECUTION_ENABLED:
+        if self.parallel_execution_enabled:
             self.execution_graph = ParallelExecutionGraph()
         else:
             self.execution_graph = SequentialExecutionGraph()
@@ -34,7 +40,7 @@ class OSHopeApp:
         self.planning_graph.compile()
         self.execution_graph.compile()
 
-        if not PARALLEL_EXECUTION_ENABLED:
+        if not self.parallel_execution_enabled:
             self.memory_graph = MemoryGraph()
             self.memory_graph.compile()
 
@@ -49,15 +55,33 @@ class OSHopeApp:
         if RAG_ENABLED:
             self.rag_tool = RAGTool()
 
+    #================= TIMER =================
+
+    def resume_timer(self):
+        self.timer_start = time.perf_counter()
+
+    def pause_timer(self):
+        if self.timer_start is not None:
+            self.execution_time += time.perf_counter() - self.timer_start
+
+            self.timer_start = None
+
+    def reset_timer(self):
+        self.execution_time = 0.0
+        self.timer_start = None
+
     # ================= PRINT AI MESSAGE =================
     def print_ai(self, text):
+        self.pause_timer()
         print("=" * self.equal_num)
         print("AI:")
         self.render(text)
         print("=" * self.equal_num)
+        self.resume_timer()
 
     # ================= INPUT =================
     def get_input(self):
+        self.pause_timer()
         inp = None
         if self.use_voice:
             inp = self.voice_input()
@@ -68,9 +92,13 @@ class OSHopeApp:
         if inp == "exit":
             print("Exiting...")
             exit(0)
+
+        self.resume_timer()
+        
         return inp
 
     def voice_input(self):
+        self.pause_timer()
         self.voice_input_interface.service.reset()
         self.voice_input_interface.service.start_listening()
         text = self.voice_input_interface.service.transcribe_audio()
@@ -81,6 +109,8 @@ class OSHopeApp:
         print("=" * self.equal_num)
         inp = input("YOU: ")
         print("=" * self.equal_num)
+
+        self.resume_timer()
 
         return text if inp == "ok" else inp
 
@@ -104,6 +134,7 @@ class OSHopeApp:
         new_state = OSHopeState()
 
         new_state.finalized_enhanced_query = state.finalized_enhanced_query
+        new_state.parallel_execution_enabled = self.parallel_execution_enabled
         new_state.original_queries = state.original_queries
         new_state.turn_num = state.turn_num
         new_state.multi_turn_conversation_history = (
@@ -141,6 +172,7 @@ class OSHopeApp:
     # ================= COGNITION =================
     def handle_cognition(self, state):
         while True:
+            state.query_classification.requires_follow_up = False
             state = self.cognition_graph.execute(state)
 
             if DEBUG_MODE:
@@ -149,9 +181,9 @@ class OSHopeApp:
             if not state.query_classification.requires_follow_up:
                 return state
 
-            self.print_ai(state.query_clarification.generated_response)
+            self.print_ai(state.query_classification.generated_follow_up_response)
             state.multi_turn_generated_responses.append(
-                state.query_clarification.generated_response
+                state.query_classification.generated_follow_up_response
             )
             self.append_hist(state)
 
@@ -166,7 +198,11 @@ class OSHopeApp:
 
     # ================= VALIDATION =================
     def validation_loop(self, state: OSHopeState):
-        while state.user_validation.is_validation_required:
+        while True:
+            state = self.planning_graph.execute(state)
+            if not state.user_validation.is_validation_required:
+                break
+            
             self.print_ai(state.user_validation.generated_response)
             state.multi_turn_generated_responses.append(
                 state.user_validation.generated_response
@@ -174,9 +210,7 @@ class OSHopeApp:
             self.append_hist(state)
 
             follow_up = self.get_input()
-            state.original_queries.append(follow_up)
-
-            state = self.planning_graph.execute(state)
+            state.original_queries.append(follow_up)            
 
             if DEBUG_MODE:
                 save_debug_state(state, "validation")
@@ -202,10 +236,21 @@ class OSHopeApp:
             if state.query_classification.query_type == "information":
                 return state
 
+            # present plan to user
+            plan_str = format_plan_for_user(state.planning)
+            self.print_ai(plan_str)
+            state.plan_presented = True
+            state.multi_turn_generated_responses.append(plan_str)
+            self.append_hist(state)
+
+            follow_up = self.get_input()
+            state.original_queries.append(follow_up)
+
             # validation loop
             state = self.validation_loop(state)
 
             if state.user_validation.user_feedback_type == "update_plan":
+                state.plan_presented = False
                 continue
 
             return state
@@ -242,9 +287,14 @@ class OSHopeApp:
         past_session_summaries = []
 
         while True:
+            self.reset_timer()
+
             query = self.get_input()
 
+            self.resume_timer()
+
             state = OSHopeState()
+            state.parallel_execution_enabled = self.parallel_execution_enabled
             state.past_session_summaries = past_session_summaries
             state.original_queries.append(query)
 
@@ -252,23 +302,35 @@ class OSHopeApp:
             state = self.handle_planning(state)
             state = self.handle_execution(state)
 
-            if not PARALLEL_EXECUTION_ENABLED:
+            if not self.parallel_execution_enabled:
                 state = self.handle_memory(state)
 
             if RAG_ENABLED:
                 state = self.handle_rag(state)
 
-            save_debug_state(state, "final_state")
-
             past_session_summaries.append(state.memory_extraction.session_summary)
 
+            self.pause_timer()
+            state.execution_time = self.execution_time
+
+            save_debug_state(state, "final_state")
 
 def main():
     parser = argparse.ArgumentParser(description="OS-HOPE CLI")
 
     parser.add_argument("--voice", action="store_true", help="Enable voice input")
-
     parser.add_argument("--no-voice", action="store_true", help="Disable voice input")
+
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Enable parallel execution",
+    )
+    parser.add_argument(
+        "--no-parallel",
+        action="store_true",
+        help="Disable parallel execution",
+    )
 
     args = parser.parse_args()
 
@@ -279,5 +341,15 @@ def main():
     else:
         use_voice = False
 
-    app = OSHopeApp(use_voice=use_voice)
+    if args.parallel:
+        use_parallel = True
+    elif args.no_parallel:
+        use_parallel = False
+    else:
+        use_parallel = PARALLEL_EXECUTION_ENABLED
+
+    app = OSHopeApp(
+        use_voice=use_voice,
+        parallel_execution_enabled=use_parallel,
+    )
     app.run()
