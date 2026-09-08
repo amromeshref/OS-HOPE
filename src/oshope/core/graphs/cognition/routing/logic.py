@@ -20,7 +20,7 @@ def route_query_after_starting(state: OSHopeState) -> str:
     Returns:
         str: The name of the node to route the query to.
     """
-    if state.query_clarification.is_clarification_needed:
+    if state.query_classification.requires_follow_up:
         return QUERY_CLARIFICATION_NODE
     return QUERY_CLASSIFICATION_NODE
 
