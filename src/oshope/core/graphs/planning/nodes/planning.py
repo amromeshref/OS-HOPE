@@ -6,7 +6,6 @@ from oshope.prompts.planning import (
     get_second_human_message,
 )
 from oshope.utils.logger import get_logger
-from oshope.config.config import PARALLEL_EXECUTION_ENABLED
 
 logger = get_logger(__name__)
 
@@ -38,7 +37,7 @@ def planning_node(state: OSHopeState) -> OSHopeState:
         structured_output=PlanningState,
     )
 
-    if PARALLEL_EXECUTION_ENABLED:
+    if state.parallel_execution_enabled:
         for i in range(len(response.plan_steps)):
             response.plan_steps[i].status = "pending"
             response.plan_steps[i].step_index = i
