@@ -407,7 +407,7 @@ def command_error_handler_state_to_str(state: CommandErrorHandlerState) -> str:
 
 
 def retrieve_dependency_outputs(
-    state: OSHopeState, parallel_execution_enabled=False
+    state: OSHopeState
 ) -> str:
     """
     Retrieve the outputs of the dependencies for the current step.
@@ -425,10 +425,44 @@ def retrieve_dependency_outputs(
         dep_output = None
         if state.planning.plan_steps[dep_idx].step_type == "command":
             dep_output = retrieve_execution_details(
-                state, dep_idx, parallel_execution_enabled=parallel_execution_enabled
+                state, dep_idx
             )
         elif state.planning.plan_steps[dep_idx].step_type == "information":
             dep_output = retrieve_information_details(state, dep_idx)
         dependency_outputs.append(dep_output)
 
     return "\n".join(dependency_outputs)
+
+def format_plan_for_user(plan: PlanningState) -> str:
+    lines = []
+
+    if plan.fulfillment_summary:
+        lines.append("Here's the plan:")
+        lines.append(plan.fulfillment_summary)
+        lines.append("")
+
+    for i, step in enumerate(plan.plan_steps, start=1):
+        lines.append(f"Step {i}: {step.description}")
+
+        if step.step_type == "command":
+            details = step.step_details
+
+            if isinstance(details, CommandStep):
+                lines.append(f"  Command: {details.command}")
+                lines.append(f"  What it does: {details.description}")
+                lines.append(f"  Safety risk: {details.safety_risk}")
+
+                if details.expected_output:
+                    lines.append(f"  Expected output: {details.expected_output}")
+
+        elif step.step_type == "information":
+            details = step.step_details
+
+            if isinstance(details, InformationStep):
+                lines.append(f"  Information: {details.description}")
+
+        lines.append("")
+
+    lines.append("Would you like me to proceed?")
+
+    return "\n".join(lines)
