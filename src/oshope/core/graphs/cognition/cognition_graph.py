@@ -6,7 +6,6 @@ from oshope.core.graphs.cognition.nodes.query_classification import (
     query_classification_node,
 )
 from oshope.core.graphs.cognition.routing.logic import (
-    route_query_after_classification,
     route_query_after_starting,
 )
 from oshope.config.config import (
@@ -46,14 +45,7 @@ class CognitionGraph(StateGraph):
             },
         )
 
-        graph.add_conditional_edges(
-            QUERY_CLASSIFICATION_NODE,
-            route_query_after_classification,
-            {
-                QUERY_CLARIFICATION_NODE: QUERY_CLARIFICATION_NODE,
-                END: END,
-            },
-        )
+        graph.add_edge(QUERY_CLASSIFICATION_NODE, END)
 
         graph.add_edge(QUERY_CLARIFICATION_NODE, END)
 
