@@ -109,6 +109,8 @@ class OSHopeBackend:
         # Memory
         # ----------------------------------------------------
 
+        self.memory_graph = None
+
         if not parallel_execution_enabled:
             self.memory_graph = MemoryGraph()
             self.memory_graph.compile()
@@ -116,6 +118,8 @@ class OSHopeBackend:
         # ----------------------------------------------------
         # RAG
         # ----------------------------------------------------
+
+        self.rag_tool = None
 
         if RAG_ENABLED:
             self.rag_tool = RAGTool()
@@ -125,12 +129,9 @@ class OSHopeBackend:
     # ========================================================
 
     def new_state_from(self, state: OSHopeState):
-        """
-        Equivalent to the CLI new_state_from().
 
-        After deeper clarification is completed, the temporary
-        cognition/clarification state is cleaned while preserving
-        the information required for the next cognition pass.
+        """
+        Exactly follows the CLI new_state_from().
         """
 
         new_state = OSHopeState()
@@ -147,7 +148,9 @@ class OSHopeBackend:
             state.original_queries
         )
 
-        new_state.turn_num = state.turn_num
+        new_state.turn_num = (
+            state.turn_num
+        )
 
         new_state.multi_turn_conversation_history = (
             state.multi_turn_conversation_history
@@ -182,15 +185,10 @@ class OSHopeBackend:
     def run_cognition(self, state):
 
         """
-        Execute one cognition pass.
-
-        Equivalent to one iteration of the CLI
-        handle_cognition() loop.
-
-        If classification requires a follow-up, the caller
-        pauses and waits for the user's response.
+        Execute one iteration of handle_cognition().
         """
 
+        # Exactly as CLI:
         state.query_classification.requires_follow_up = False
 
         state = self.cognition_graph.execute(state)
@@ -211,17 +209,13 @@ class OSHopeBackend:
     # ========================================================
 
     def run_clarification(self, state):
+
         """
-        Execute ONE iteration of clarification_loop().
+        Execute one iteration of clarification_loop().
 
-        CLI equivalent:
-
-            state = self.cognition_graph.execute(state)
-
-            if clarification is still required:
-                ask user
-            else:
-                return state
+        Streamlit cannot block waiting for user input, so the
+        while-loop from the CLI is represented by one graph
+        execution per Streamlit interaction.
         """
 
         state = self.cognition_graph.execute(state)
@@ -252,10 +246,14 @@ class OSHopeBackend:
             )
 
         # ----------------------------------------------------
-        # Planner needs clarification
+        # Planner requires clarification
         # ----------------------------------------------------
 
         if state.planning.requires_follow_up:
+
+            # Same as CLI:
+            #
+            # state.query_clarification.is_clarification_needed = True
 
             state.query_clarification.is_clarification_needed = (
                 True
@@ -287,10 +285,9 @@ class OSHopeBackend:
     def run_validation(self, state):
 
         """
-        Execute ONE iteration of the CLI validation_loop().
+        Execute one iteration of the validation flow.
 
-        The important point is that validation is handled by
-        the planning graph, not the cognition graph.
+        Validation is handled by PlanningGraph.
         """
 
         state = self.planning_graph.execute(state)
@@ -331,7 +328,7 @@ class OSHopeBackend:
 
     def run_memory(self, state):
 
-        if not self.parallel_execution_enabled:
+        if self.memory_graph is not None:
 
             state = self.memory_graph.execute(state)
 
@@ -349,7 +346,7 @@ class OSHopeBackend:
 
     def run_rag(self, state):
 
-        if RAG_ENABLED:
+        if RAG_ENABLED and self.rag_tool is not None:
 
             self.rag_tool.add_memories(
                 session_id=state.turn_num,
@@ -371,29 +368,53 @@ def add_assistant_response_to_state_history(
     response,
 ):
     """
-    Equivalent to the CLI:
+    Exactly follows the semantics of CLI append_hist().
 
-        self.print_ai(response)
-        state.multi_turn_generated_responses.append(response)
-        self.append_hist(state)
+    CLI:
 
-    Streamlit additionally stores the response separately in
-    its visual conversation.
+        state.multi_turn_generated_responses.append(
+            response
+        )
+
+        state.multi_turn_conversation_history.append(
+            {
+                "turn_num": state.turn_num,
+                "user_query": state.original_queries[-1],
+                "assistant_response": response,
+            }
+        )
+
+        state.turn_num += 1
     """
 
     if response is None:
         return state
 
+    # --------------------------------------------------------
+    # First store generated response
+    # --------------------------------------------------------
+
     state.multi_turn_generated_responses.append(
         response
     )
 
+    # --------------------------------------------------------
+    # Then append history using CURRENT turn_num
+    # --------------------------------------------------------
+
     state.multi_turn_conversation_history.append(
         {
-            "role": "assistant",
-            "content": response,
+            "turn_num": state.turn_num,
+            "user_query": state.original_queries[-1],
+            "assistant_response": response,
         }
     )
+
+    # --------------------------------------------------------
+    # Finally increment turn_num
+    # --------------------------------------------------------
+
+    state.turn_num += 1
 
     return state
 
@@ -403,18 +424,12 @@ def add_user_response_to_state_history(
     response,
 ):
     """
-    Add the user's response to the state conversation history.
+    User queries are stored in original_queries.
 
-    original_queries is updated separately because that is the
-    field used by the OS-HOPE cognition/planning pipeline.
+    The CLI append_hist() only creates history records when
+    an assistant response is generated, so no separate user
+    record is added here.
     """
-
-    state.multi_turn_conversation_history.append(
-        {
-            "role": "user",
-            "content": response,
-        }
-    )
 
     return state
 
@@ -423,17 +438,8 @@ def add_plan_presentation_to_state_history(
     state,
 ):
     """
-    Equivalent to the CLI plan presentation:
-
-        plan_str = format_plan_for_user(state.planning)
-        self.print_ai(plan_str)
-        state.multi_turn_generated_responses.append(plan_str)
-        self.append_hist(state)
-
-    The returned plan_str is used ONLY for OS-HOPE's internal
-    multi-turn history.
-
-    Streamlit uses state.planning separately for the rich UI.
+    Store the formatted plan exactly like an assistant response
+    in the CLI history.
     """
 
     plan_str = format_plan_for_user(
@@ -449,6 +455,61 @@ def add_plan_presentation_to_state_history(
 
 
 # ============================================================
+# EXECUTION COMPLETION
+# ============================================================
+
+
+def complete_execution(state):
+    """
+    Same post-execution sequence as the CLI:
+
+        state = handle_memory(state)
+
+        if RAG_ENABLED:
+            state = handle_rag(state)
+
+        past_session_summaries.append(
+            state.memory_extraction.session_summary
+        )
+    """
+
+    backend = st.session_state.backend
+
+    # --------------------------------------------------------
+    # Memory
+    # --------------------------------------------------------
+
+    state = backend.run_memory(state)
+
+    # --------------------------------------------------------
+    # RAG
+    # --------------------------------------------------------
+
+    if RAG_ENABLED:
+        state = backend.run_rag(state)
+
+    # --------------------------------------------------------
+    # Session summary
+    # --------------------------------------------------------
+
+    if (
+        hasattr(state, "memory_extraction")
+        and state.memory_extraction is not None
+    ):
+
+        summary = (
+            state.memory_extraction.session_summary
+        )
+
+        if summary:
+            st.session_state.past_session_summaries.append(
+                summary
+            )
+
+    return state
+
+
+# ============================================================
 # STREAMLIT CONVERSATION HELPERS
 # ============================================================
 
@@ -457,9 +518,6 @@ def add_text_message(
     role,
     content,
 ):
-    """
-    Add a normal text message to the Streamlit UI history.
-    """
 
     st.session_state.conversation.append(
         {
@@ -473,17 +531,6 @@ def add_text_message(
 def add_plan_message(
     planning_state,
 ):
-    """
-    Add a structured plan to the Streamlit UI history.
-
-    This is intentionally different from plan_str.
-
-    plan_str:
-        used by OS-HOPE internal state history.
-
-    planning_state:
-        used by Streamlit to reconstruct the rich plan UI.
-    """
 
     st.session_state.conversation.append(
         {
@@ -492,6 +539,82 @@ def add_plan_message(
             "planning_state": planning_state,
         }
     )
+
+
+# ============================================================
+# SYNCHRONIZE SESSION STATE
+# ============================================================
+
+
+def sync_session_state(state):
+
+    st.session_state.state = state
+
+    # Keep Streamlit turn_num synchronized with OSHopeState.
+    st.session_state.turn_num = state.turn_num
+
+
+# ============================================================
+# PRESENT ASSISTANT RESPONSE
+# ============================================================
+
+
+def present_assistant_response(
+    state,
+    response,
+):
+
+    state = add_assistant_response_to_state_history(
+        state,
+        response,
+    )
+
+    add_text_message(
+        "assistant",
+        response,
+    )
+
+    sync_session_state(state)
+
+    return state
+
+
+# ============================================================
+# PLAN PRESENTATION
+# ============================================================
+
+
+def present_plan(state):
+
+    # --------------------------------------------------------
+    # Add textual plan to internal CLI-compatible history.
+    # --------------------------------------------------------
+
+    state, _ = (
+        add_plan_presentation_to_state_history(
+            state
+        )
+    )
+
+    # --------------------------------------------------------
+    # Add structured plan to Streamlit UI.
+    # --------------------------------------------------------
+
+    add_plan_message(
+        state.planning
+    )
+
+    state.plan_presented = True
+
+    st.session_state.state = state
+    st.session_state.pending_state = state
+    st.session_state.interaction_state = (
+        "plan_validation"
+    )
+
+    st.session_state.turn_num = state.turn_num
+
+    st.rerun()
 
 
 # ============================================================
@@ -530,9 +653,12 @@ def render_plan(planning_state):
         step_details = step.step_details
 
         if step.step_type == "command":
+
             step_icon = "⚙️"
             step_type = "COMMAND"
+
         else:
+
             step_icon = "ℹ️"
             step_type = "INFORMATION"
 
@@ -913,10 +1039,6 @@ if (
             False
         )
 
-        # ----------------------------------------------------
-        # State history
-        # ----------------------------------------------------
-
         state = add_user_response_to_state_history(
             state,
             "approve",
@@ -931,21 +1053,19 @@ if (
                 .run_execution(state)
             )
 
+            state = complete_execution(state)
+
         response = state.generated_final_response
 
-        state = add_assistant_response_to_state_history(
+        state = present_assistant_response(
             state,
             response,
         )
 
-        add_text_message(
-            "assistant",
-            response,
-        )
-
-        st.session_state.state = state
         st.session_state.pending_state = None
         st.session_state.interaction_state = None
+
+        sync_session_state(state)
 
         st.rerun()
 
@@ -967,19 +1087,15 @@ if (
             "The proposed plan was not approved."
         )
 
-        state = add_assistant_response_to_state_history(
+        state = present_assistant_response(
             state,
             response,
         )
 
-        add_text_message(
-            "assistant",
-            response,
-        )
-
-        st.session_state.state = state
         st.session_state.pending_state = None
         st.session_state.interaction_state = None
+
+        sync_session_state(state)
 
         st.rerun()
 
@@ -1006,274 +1122,26 @@ if user_query:
 
         state = st.session_state.state
 
+        add_text_message(
+            "user",
+            user_query,
+        )
+
+        state.original_queries.append(
+            user_query
+        )
+
+        state = add_user_response_to_state_history(
+            state,
+            user_query,
+        )
+
         # ----------------------------------------------------
-        # User answered classification follow-up.
-        #
         # CLI:
         #
-        # follow_up = self.get_input()
-        # state.original_queries.append(follow_up)
-        # state = self.clarification_loop(state)
-        # state = self.new_state_from(state)
-        # ----------------------------------------------------
-
-        add_text_message(
-            "user",
-            user_query,
-        )
-
-        state.original_queries.append(
-            user_query
-        )
-
-        state = add_user_response_to_state_history(
-            state,
-            user_query,
-        )
-
-        # ----------------------------------------------------
-        # Start deeper clarification loop.
+        # state = clarification_loop(state)
         #
-        # Streamlit performs ONE iteration here.
-        # If another clarification is required, the next
-        # rerun will continue from interaction_state.
-        # ----------------------------------------------------
-
-        with st.spinner(
-            "Checking clarification..."
-        ):
-
-            state, clarification_status = (
-                st.session_state.backend
-                .run_clarification(state)
-            )
-
-        if (
-            clarification_status
-            == "clarification_needed"
-        ):
-
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
-
-            state = add_assistant_response_to_state_history(
-                state,
-                response,
-            )
-
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
-
-            st.session_state.interaction_state = (
-                "clarification"
-            )
-
-            st.rerun()
-
-        # ----------------------------------------------------
-        # Clarification completed.
-        #
-        # Equivalent to:
-        #
-        # state = self.new_state_from(state)
-        # continue
-        #
-        # in CLI handle_cognition().
-        # ----------------------------------------------------
-
-        state = (
-            st.session_state.backend
-            .new_state_from(state)
-        )
-
-        st.session_state.state = state
-
-        # ----------------------------------------------------
-        # Continue cognition immediately.
-        #
-        # This is the next iteration of the CLI
-        # handle_cognition() loop.
-        # ----------------------------------------------------
-
-        with st.spinner(
-            "Understanding your request..."
-        ):
-
-            state, cognition_status = (
-                st.session_state.backend
-                .run_cognition(state)
-            )
-
-        if cognition_status == "follow_up":
-
-            response = (
-                state
-                .query_classification
-                .generated_follow_up_response
-            )
-
-            state = add_assistant_response_to_state_history(
-                state,
-                response,
-            )
-
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
-            st.session_state.interaction_state = (
-                "cognition_follow_up"
-            )
-
-            st.rerun()
-
-        # ----------------------------------------------------
-        # Cognition complete.
-        #
-        # Continue directly to planning.
-        # ----------------------------------------------------
-
-        st.session_state.state = state
-
-        # ====================================================
-        # PLANNING
-        # ====================================================
-
-        with st.spinner(
-            "Planning the requested operation..."
-        ):
-
-            state, planning_status = (
-                st.session_state.backend
-                .run_planning(state)
-            )
-
-        # ----------------------------------------------------
-        # Planner clarification
-        # ----------------------------------------------------
-
-        if (
-            planning_status
-            == "clarification_needed"
-        ):
-
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
-
-            state = add_assistant_response_to_state_history(
-                state,
-                response,
-            )
-
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
-            st.session_state.interaction_state = (
-                "clarification"
-            )
-
-            st.rerun()
-
-        # ----------------------------------------------------
-        # Information query
-        # ----------------------------------------------------
-
-        if planning_status == "ready":
-
-            with st.spinner(
-                "Generating response..."
-            ):
-
-                state = (
-                    st.session_state.backend
-                    .run_execution(state)
-                )
-
-            response = (
-                state.generated_final_response
-            )
-
-            state = add_assistant_response_to_state_history(
-                state,
-                response,
-            )
-
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
-            st.session_state.interaction_state = None
-
-            st.rerun()
-
-        # ----------------------------------------------------
-        # Present plan
-        # ----------------------------------------------------
-
-        state, plan_str = (
-            add_plan_presentation_to_state_history(
-                state
-            )
-        )
-
-        add_plan_message(
-            state.planning
-        )
-
-        state.plan_presented = True
-
-        st.session_state.state = state
-        st.session_state.pending_state = state
-        st.session_state.interaction_state = (
-            "plan_validation"
-        )
-
-        st.rerun()
-
-    # ========================================================
-    # DEEP CLARIFICATION
-    # ========================================================
-
-    elif (
-        st.session_state.interaction_state
-        == "clarification"
-    ):
-
-        state = st.session_state.state
-
-        add_text_message(
-            "user",
-            user_query,
-        )
-
-        state.original_queries.append(
-            user_query
-        )
-
-        state = add_user_response_to_state_history(
-            state,
-            user_query,
-        )
-
-        # ----------------------------------------------------
-        # One iteration of clarification_loop()
+        # Execute one iteration.
         # ----------------------------------------------------
 
         with st.spinner(
@@ -1289,10 +1157,7 @@ if user_query:
         # More clarification required
         # ----------------------------------------------------
 
-        if (
-            clarification_status
-            == "clarification_needed"
-        ):
+        if clarification_status == "clarification_needed":
 
             response = (
                 state
@@ -1300,27 +1165,23 @@ if user_query:
                 .generated_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
+            st.session_state.interaction_state = (
+                "clarification_from_cognition"
             )
 
-            st.session_state.state = state
-            st.session_state.interaction_state = (
-                "clarification"
-            )
+            sync_session_state(state)
 
             st.rerun()
 
         # ----------------------------------------------------
-        # Clarification completed.
+        # Clarification completed
         #
-        # EXACT CLI behavior:
+        # CLI:
         #
         # state = self.new_state_from(state)
         # ----------------------------------------------------
@@ -1330,13 +1191,8 @@ if user_query:
             .new_state_from(state)
         )
 
-        st.session_state.state = state
-
         # ----------------------------------------------------
-        # Continue cognition.
-        #
-        # This reproduces the continuation of
-        # handle_cognition().
+        # CLI returns to handle_cognition()
         # ----------------------------------------------------
 
         with st.spinner(
@@ -1348,10 +1204,6 @@ if user_query:
                 .run_cognition(state)
             )
 
-        # ----------------------------------------------------
-        # Another classification follow-up
-        # ----------------------------------------------------
-
         if cognition_status == "follow_up":
 
             response = (
@@ -1360,26 +1212,22 @@ if user_query:
                 .generated_follow_up_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
             st.session_state.interaction_state = (
                 "cognition_follow_up"
             )
 
+            sync_session_state(state)
+
             st.rerun()
 
-        # ====================================================
-        # PLANNING
-        # ====================================================
+        # ----------------------------------------------------
+        # Cognition complete -> planning
+        # ----------------------------------------------------
 
         with st.spinner(
             "Planning the requested operation..."
@@ -1390,14 +1238,7 @@ if user_query:
                 .run_planning(state)
             )
 
-        # ----------------------------------------------------
-        # Planner clarification
-        # ----------------------------------------------------
-
-        if (
-            planning_status
-            == "clarification_needed"
-        ):
+        if planning_status == "clarification_needed":
 
             response = (
                 state
@@ -1405,20 +1246,225 @@ if user_query:
                 .generated_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
+            st.session_state.interaction_state = (
+                "clarification_from_planning"
+            )
+
+            sync_session_state(state)
+
+            st.rerun()
+
+        if planning_status == "ready":
+
+            with st.spinner(
+                "Generating response..."
+            ):
+
+                state = (
+                    st.session_state.backend
+                    .run_execution(state)
+                )
+
+                state = complete_execution(state)
+
+            response = (
+                state.generated_final_response
+            )
+
+            state = present_assistant_response(
+                state,
                 response,
             )
 
-            st.session_state.state = state
-            st.session_state.interaction_state = (
-                "clarification"
+            st.session_state.interaction_state = None
+
+            sync_session_state(state)
+
+            st.rerun()
+
+        present_plan(state)
+
+
+    # ========================================================
+    # CLARIFICATION
+    # ========================================================
+
+    elif (
+        st.session_state.interaction_state
+        in (
+            "clarification_from_cognition",
+            "clarification_from_planning",
+        )
+    ):
+
+        state = st.session_state.state
+
+        clarification_origin = (
+            st.session_state.interaction_state
+        )
+
+        add_text_message(
+            "user",
+            user_query,
+        )
+
+        state.original_queries.append(
+            user_query
+        )
+
+        state = add_user_response_to_state_history(
+            state,
+            user_query,
+        )
+
+        # ----------------------------------------------------
+        # One clarification iteration
+        # ----------------------------------------------------
+
+        with st.spinner(
+            "Processing your clarification..."
+        ):
+
+            state, clarification_status = (
+                st.session_state.backend
+                .run_clarification(state)
             )
+
+        # ----------------------------------------------------
+        # Still needs clarification
+        # ----------------------------------------------------
+
+        if clarification_status == "clarification_needed":
+
+            response = (
+                state
+                .query_clarification
+                .generated_response
+            )
+
+            state = present_assistant_response(
+                state,
+                response,
+            )
+
+            # Preserve the origin.
+            st.session_state.interaction_state = (
+                clarification_origin
+            )
+
+            sync_session_state(state)
+
+            st.rerun()
+
+        # ----------------------------------------------------
+        # Clarification finished
+        # ----------------------------------------------------
+
+        state = (
+            st.session_state.backend
+            .new_state_from(state)
+        )
+
+        # ====================================================
+        # CLARIFICATION ORIGINATED FROM COGNITION
+        # ====================================================
+
+        if (
+            clarification_origin
+            == "clarification_from_cognition"
+        ):
+
+            # CLI:
+            #
+            # clarification_loop()
+            # -> new_state_from()
+            # -> handle_cognition()
+            #
+            # Therefore cognition runs again.
+
+            with st.spinner(
+                "Understanding your request..."
+            ):
+
+                state, cognition_status = (
+                    st.session_state.backend
+                    .run_cognition(state)
+                )
+
+            if cognition_status == "follow_up":
+
+                response = (
+                    state
+                    .query_classification
+                    .generated_follow_up_response
+                )
+
+                state = present_assistant_response(
+                    state,
+                    response,
+                )
+
+                st.session_state.interaction_state = (
+                    "cognition_follow_up"
+                )
+
+                sync_session_state(state)
+
+                st.rerun()
+
+        # ====================================================
+        # CLARIFICATION ORIGINATED FROM PLANNING
+        # ====================================================
+
+        # IMPORTANT:
+        #
+        # Do NOT run cognition here.
+        #
+        # CLI:
+        #
+        # planning
+        #   -> clarification_loop()
+        #   -> new_state_from()
+        #   -> planning
+        #
+        # ====================================================
+
+        with st.spinner(
+            "Continuing the plan..."
+        ):
+
+            state, planning_status = (
+                st.session_state.backend
+                .run_planning(state)
+            )
+
+        # ----------------------------------------------------
+        # Planner needs another clarification
+        # ----------------------------------------------------
+
+        if planning_status == "clarification_needed":
+
+            response = (
+                state
+                .query_clarification
+                .generated_response
+            )
+
+            state = present_assistant_response(
+                state,
+                response,
+            )
+
+            st.session_state.interaction_state = (
+                "clarification_from_planning"
+            )
+
+            sync_session_state(state)
 
             st.rerun()
 
@@ -1437,48 +1483,29 @@ if user_query:
                     .run_execution(state)
                 )
 
+                state = complete_execution(state)
+
             response = (
                 state.generated_final_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
             st.session_state.interaction_state = None
+
+            sync_session_state(state)
 
             st.rerun()
 
         # ----------------------------------------------------
-        # Present plan
+        # Normal operation -> present plan
         # ----------------------------------------------------
 
-        state, plan_str = (
-            add_plan_presentation_to_state_history(
-                state
-            )
-        )
+        present_plan(state)
 
-        add_plan_message(
-            state.planning
-        )
-
-        state.plan_presented = True
-
-        st.session_state.state = state
-        st.session_state.pending_state = state
-        st.session_state.interaction_state = (
-            "plan_validation"
-        )
-
-        st.rerun()
 
     # ========================================================
     # PLAN VALIDATION
@@ -1489,20 +1516,6 @@ if user_query:
         and st.session_state.interaction_state
         == "plan_validation"
     ):
-
-        # ----------------------------------------------------
-        # This is NOT a new query.
-        #
-        # It is validation feedback.
-        #
-        # CLI:
-        #
-        # follow_up = self.get_input()
-        # state.original_queries.append(follow_up)
-        # state = self.validation_loop(state)
-        #
-        # validation_loop() executes planning_graph.
-        # ----------------------------------------------------
 
         add_text_message(
             "user",
@@ -1520,9 +1533,9 @@ if user_query:
             user_query,
         )
 
-        # ====================================================
-        # VALIDATION ITERATION
-        # ====================================================
+        # ----------------------------------------------------
+        # Validation
+        # ----------------------------------------------------
 
         with st.spinner(
             "Processing your feedback..."
@@ -1533,31 +1546,29 @@ if user_query:
                 .run_validation(state)
             )
 
-        # ====================================================
-        # VALIDATION STILL REQUIRED
-        # ====================================================
+        # ----------------------------------------------------
+        # Validation still required
+        # ----------------------------------------------------
 
         if state.user_validation.is_validation_required:
 
             response = (
-                state.user_validation.generated_response
+                state
+                .user_validation
+                .generated_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
-            )
-
             st.session_state.pending_state = state
-            st.session_state.state = state
             st.session_state.interaction_state = (
                 "plan_validation"
             )
+
+            sync_session_state(state)
 
             st.rerun()
 
@@ -1569,13 +1580,6 @@ if user_query:
             state.user_validation.user_feedback_type
             == "update_plan"
         ):
-
-            # ------------------------------------------------
-            # CLI:
-            #
-            # state.plan_presented = False
-            # continue
-            # ------------------------------------------------
 
             state.plan_presented = False
 
@@ -1589,13 +1593,10 @@ if user_query:
                 )
 
             # ------------------------------------------------
-            # Planner needs clarification
+            # Planner requests clarification
             # ------------------------------------------------
 
-            if (
-                planning_status
-                == "clarification_needed"
-            ):
+            if planning_status == "clarification_needed":
 
                 response = (
                     state
@@ -1603,21 +1604,18 @@ if user_query:
                     .generated_response
                 )
 
-                state = add_assistant_response_to_state_history(
+                state = present_assistant_response(
                     state,
                     response,
                 )
 
-                add_text_message(
-                    "assistant",
-                    response,
+                st.session_state.pending_state = state
+
+                st.session_state.interaction_state = (
+                    "clarification_from_planning"
                 )
 
-                st.session_state.state = state
-                st.session_state.pending_state = None
-                st.session_state.interaction_state = (
-                    "clarification"
-                )
+                sync_session_state(state)
 
                 st.rerun()
 
@@ -1625,28 +1623,10 @@ if user_query:
             # Present updated plan
             # ------------------------------------------------
 
-            state, plan_str = (
-                add_plan_presentation_to_state_history(
-                    state
-                )
-            )
-
-            add_plan_message(
-                state.planning
-            )
-
-            state.plan_presented = True
-
-            st.session_state.state = state
-            st.session_state.pending_state = state
-            st.session_state.interaction_state = (
-                "plan_validation"
-            )
-
-            st.rerun()
+            present_plan(state)
 
         # ====================================================
-        # VALIDATION FINISHED
+        # VALIDATION COMPLETE -> EXECUTION
         # ====================================================
 
         with st.spinner(
@@ -1658,25 +1638,24 @@ if user_query:
                 .run_execution(state)
             )
 
+            state = complete_execution(state)
+
         response = (
             state.generated_final_response
         )
 
-        state = add_assistant_response_to_state_history(
+        state = present_assistant_response(
             state,
             response,
         )
 
-        add_text_message(
-            "assistant",
-            response,
-        )
-
-        st.session_state.state = state
         st.session_state.pending_state = None
         st.session_state.interaction_state = None
 
+        sync_session_state(state)
+
         st.rerun()
+
 
     # ========================================================
     # NEW QUERY
@@ -1685,7 +1664,7 @@ if user_query:
     else:
 
         # ----------------------------------------------------
-        # Add user message to Streamlit UI
+        # UI history
         # ----------------------------------------------------
 
         add_text_message(
@@ -1705,6 +1684,7 @@ if user_query:
             .parallel_execution_enabled
         )
 
+        # Preserve previous session summaries.
         state.past_session_summaries = (
             st.session_state
             .past_session_summaries
@@ -1717,10 +1697,6 @@ if user_query:
         state.turn_num = (
             st.session_state.turn_num
         )
-
-        # ----------------------------------------------------
-        # State history
-        # ----------------------------------------------------
 
         state = add_user_response_to_state_history(
             state,
@@ -1752,21 +1728,16 @@ if user_query:
                 .generated_follow_up_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
-
             st.session_state.interaction_state = (
                 "cognition_follow_up"
             )
+
+            sync_session_state(state)
 
             st.rerun()
 
@@ -1787,10 +1758,7 @@ if user_query:
         # PLANNER CLARIFICATION
         # ====================================================
 
-        if (
-            planning_status
-            == "clarification_needed"
-        ):
+        if planning_status == "clarification_needed":
 
             response = (
                 state
@@ -1798,21 +1766,20 @@ if user_query:
                 .generated_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
-
+            # IMPORTANT:
+            # This clarification came from planning.
+            # The next user response must return directly
+            # to planning.
             st.session_state.interaction_state = (
-                "clarification"
+                "clarification_from_planning"
             )
+
+            sync_session_state(state)
 
             st.rerun()
 
@@ -1831,65 +1798,25 @@ if user_query:
                     .run_execution(state)
                 )
 
+                state = complete_execution(state)
+
             response = (
                 state.generated_final_response
             )
 
-            state = add_assistant_response_to_state_history(
+            state = present_assistant_response(
                 state,
                 response,
             )
 
-            add_text_message(
-                "assistant",
-                response,
-            )
-
-            st.session_state.state = state
             st.session_state.interaction_state = None
+
+            sync_session_state(state)
 
             st.rerun()
 
         # ====================================================
-        # PLAN PRESENTATION
+        # NORMAL OPERATION -> PLAN
         # ====================================================
 
-        # ----------------------------------------------------
-        # CLI equivalent:
-        #
-        # plan_str = format_plan_for_user(state.planning)
-        # self.print_ai(plan_str)
-        # state.plan_presented = True
-        # state.multi_turn_generated_responses.append(plan_str)
-        # self.append_hist(state)
-        # ----------------------------------------------------
-
-        state, plan_str = (
-            add_plan_presentation_to_state_history(
-                state
-            )
-        )
-
-        # ----------------------------------------------------
-        # Rich Streamlit representation
-        # ----------------------------------------------------
-
-        add_plan_message(
-            state.planning
-        )
-
-        state.plan_presented = True
-
-        # ----------------------------------------------------
-        # Wait for validation.
-        # ----------------------------------------------------
-
-        st.session_state.state = state
-
-        st.session_state.pending_state = state
-
-        st.session_state.interaction_state = (
-            "plan_validation"
-        )
-
-        st.rerun()
+        present_plan(state)
