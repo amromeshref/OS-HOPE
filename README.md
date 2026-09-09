@@ -24,51 +24,51 @@ conda create -n oshope python=3.9
 
 Activate the environment:
 
-\`\`\`bash
+```bash
 conda activate oshope
-\`\`\`
+```
 
 ### Option 2: Python venv
 
 Create a virtual environment:
 
-\`\`\`bash
+```bash
 python3 -m venv .venv
-\`\`\`
+```
 
 Activate the environment on Linux/macOS:
 
-\`\`\`bash
+```bash
 source .venv/bin/activate
-\`\`\`
+```
 
 On Windows:
 
-\`\`\`powershell
+```powershell
 .venv\Scripts\activate
-\`\`\`
+```
 
 ## 3. Install Dependencies
 
 Install the required dependencies from `requirements.txt`:
 
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 ## 4. Install OS-HOPE
 
 Install OS-HOPE as a Python package:
 
-\`\`\`bash
+```bash
 pip install .
-\`\`\`
+```
 
 For development, an editable installation can be used instead:
 
-\`\`\`bash
+```bash
 pip install -e .
-\`\`\`
+```
 
 ## 5. Configure Environment Variables
 
@@ -76,9 +76,9 @@ OS-HOPE requires an API key for the configured LLM provider.
 
 Add the required API key:
 
-\`\`\`env
+```bash
 GROQ_API_KEY=your_api_key_here
-\`\`\`
+```
 
 Replace `your_api_key_here` with your API key.
 
@@ -92,14 +92,14 @@ After completing the installation and configuring the required environment varia
 
 Start the OS-HOPE CLI using:
 
-\`\`\`bash
+```bash
 oshope-cli
-\`\`\`
+```
 
 ## Web Interface
 
 Start the OS-HOPE web interface using:
 
-\`\`\`bash
+```bash
 oshope-web
-\`\`\`
+```
