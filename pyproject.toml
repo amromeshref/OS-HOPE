@@ -13,4 +13,5 @@ dependencies = []
 where = ["src"]
 
 [project.scripts]
-os-hope = "oshope.interfaces.cli:main"
+oshope-cli = "oshope.interfaces.cli:main"
+oshope-web = "oshope.interfaces.streamlit.web:main"
