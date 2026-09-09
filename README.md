@@ -18,9 +18,9 @@ OS-HOPE can be installed using either **Conda** or Python's built-in **venv**.
 
 Create a new Conda environment:
 
-\`\`\`bash
+```bash
 conda create -n oshope python=3.9
-\`\`\`
+```
 
 Activate the environment:
 
