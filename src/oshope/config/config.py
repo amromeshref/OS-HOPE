@@ -1,4 +1,7 @@
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 # Voice input settings
 VOICE_INPUT_ENABLED = True
@@ -25,7 +28,7 @@ DEFAULT_LLM_PLATFORM = "groq"
 DEFAULT_OLLAMA_MODEL_NAME = "qwen2.5:14b-instruct-q5_K_M"
 
 # Groq settings
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL_1 = "openai/gpt-oss-120b"
 GROQ_MODEL_2 = "openai/gpt-oss-20b"
 DEFAULT_GROQ_MODEL_NAME = GROQ_MODEL_1
