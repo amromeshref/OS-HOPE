@@ -103,3 +103,9 @@ Start the OS-HOPE web interface using:
 ```bash
 oshope-web
 ```
+
+Then open the following URL in your web browser:
+
+```bash
+http://localhost:8501
+```
