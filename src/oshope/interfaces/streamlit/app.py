@@ -919,7 +919,7 @@ with st.sidebar:
     st.subheader("Execution")
 
     parallel_enabled = st.toggle(
-        "Parallel execution",
+        "Parallel Execution",
         value=(
             st.session_state
             .backend
@@ -927,6 +927,10 @@ with st.sidebar:
         ),
     )
 
+    st.caption(
+        "Execute independent steps in parallel to reduce execution time."
+    )
+    
     if (
         parallel_enabled
         != st.session_state.backend.parallel_execution_enabled
