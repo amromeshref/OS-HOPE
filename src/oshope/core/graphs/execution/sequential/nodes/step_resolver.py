@@ -42,14 +42,25 @@ def step_resolver_node(state: OSHopeState) -> OSHopeState:
     Resolve the current step by replacing placeholders with actual values from dependencies.
     """
     logger.info("Starting step resolver node.")
+    current_step_index = state.current_step_index
+    current_step = state.planning.plan_steps[current_step_index]
 
+    if current_step.step_type == "command":
+        if len(current_step.step_details.input_variables) == 0:
+            logger.info("No input variables for this command step. Skipping step resolver.")
+            return StepResolverState(
+                is_resolution_successful=True,
+                resolved_steps=[current_step],
+                resolution_reasoning="No input variables to resolve.",
+            )
+    
     llm_model = LLMModel()
     sys_prompt = get_step_resolver_sys_prompt()
-    current_step_index = state.current_step_index
+
     print("=" * 90)
     print(f"Current step index in step resolver: {current_step_index}")
     print("=" * 90)
-    current_step = state.planning.plan_steps[current_step_index]
+
     dependency_outputs_str = retrieve_dependency_outputs(state)
 
     human_message = get_human_message(current_step, dependency_outputs_str)
