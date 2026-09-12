@@ -2,6 +2,7 @@ logs/
 notebooks/
 memory/
 database/
+demos/
 os_hope_risky_queries_batch2.csv
 os_hope_risky_queries_batch3_filesystem.csv
 os_hope_risky_queries.csv
