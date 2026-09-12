@@ -18,7 +18,10 @@ class QueryClassificationState(BaseModel):
     )
 
     confidence_score: float = Field(
-        default=0.0, ge=0, le=1, description="The confidence score of the classification."
+        default=0.0,
+        ge=0,
+        le=1,
+        description="The confidence score of the classification.",
     )
 
     classification_reasoning: str = Field(

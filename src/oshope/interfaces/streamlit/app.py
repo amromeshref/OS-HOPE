@@ -85,9 +85,7 @@ class OSHopeBackend:
 
     def __init__(self, parallel_execution_enabled=True):
 
-        self.parallel_execution_enabled = (
-            parallel_execution_enabled
-        )
+        self.parallel_execution_enabled = parallel_execution_enabled
 
         # ----------------------------------------------------
         # Graphs
@@ -129,52 +127,33 @@ class OSHopeBackend:
     # ========================================================
 
     def new_state_from(self, state: OSHopeState):
-
         """
         Exactly follows the CLI new_state_from().
         """
 
         new_state = OSHopeState()
 
-        new_state.finalized_enhanced_query = (
-            state.finalized_enhanced_query
-        )
+        new_state.finalized_enhanced_query = state.finalized_enhanced_query
 
-        new_state.parallel_execution_enabled = (
-            self.parallel_execution_enabled
-        )
+        new_state.parallel_execution_enabled = self.parallel_execution_enabled
 
-        new_state.original_queries = (
-            state.original_queries
-        )
+        new_state.original_queries = state.original_queries
 
-        new_state.turn_num = (
-            state.turn_num
-        )
+        new_state.turn_num = state.turn_num
 
         new_state.multi_turn_conversation_history = (
             state.multi_turn_conversation_history
         )
 
-        new_state.original_queries_enhanced = (
-            state.original_queries_enhanced
-        )
+        new_state.original_queries_enhanced = state.original_queries_enhanced
 
-        new_state.multi_turn_generated_responses = (
-            state.multi_turn_generated_responses
-        )
+        new_state.multi_turn_generated_responses = state.multi_turn_generated_responses
 
-        new_state.clarification_attempts = (
-            state.clarification_attempts
-        )
+        new_state.clarification_attempts = state.clarification_attempts
 
-        new_state.query_clarification = (
-            state.query_clarification
-        )
+        new_state.query_clarification = state.query_clarification
 
-        new_state.query_classification = (
-            state.query_classification
-        )
+        new_state.query_classification = state.query_classification
 
         return new_state
 
@@ -183,7 +162,6 @@ class OSHopeBackend:
     # ========================================================
 
     def run_cognition(self, state):
-
         """
         Execute one iteration of handle_cognition().
         """
@@ -209,7 +187,6 @@ class OSHopeBackend:
     # ========================================================
 
     def run_clarification(self, state):
-
         """
         Execute one iteration of clarification_loop().
 
@@ -255,9 +232,7 @@ class OSHopeBackend:
             #
             # state.query_clarification.is_clarification_needed = True
 
-            state.query_clarification.is_clarification_needed = (
-                True
-            )
+            state.query_clarification.is_clarification_needed = True
 
             return state, "clarification_needed"
 
@@ -265,10 +240,7 @@ class OSHopeBackend:
         # Information query
         # ----------------------------------------------------
 
-        if (
-            state.query_classification.query_type
-            == "information"
-        ):
+        if state.query_classification.query_type == "information":
 
             return state, "ready"
 
@@ -283,7 +255,6 @@ class OSHopeBackend:
     # ========================================================
 
     def run_validation(self, state):
-
         """
         Execute one iteration of the validation flow.
 
@@ -310,9 +281,7 @@ class OSHopeBackend:
 
         state = self.execution_graph.execute(state)
 
-        state.execution_time = (
-            time.perf_counter() - start_time
-        )
+        state.execution_time = time.perf_counter() - start_time
 
         if DEBUG_MODE:
             save_debug_state(
@@ -350,9 +319,7 @@ class OSHopeBackend:
 
             self.rag_tool.add_memories(
                 session_id=state.turn_num,
-                summaries=(
-                    state.memory_extraction.summary_for_rag
-                ),
+                summaries=(state.memory_extraction.summary_for_rag),
             )
 
         return state
@@ -394,9 +361,7 @@ def add_assistant_response_to_state_history(
     # First store generated response
     # --------------------------------------------------------
 
-    state.multi_turn_generated_responses.append(
-        response
-    )
+    state.multi_turn_generated_responses.append(response)
 
     # --------------------------------------------------------
     # Then append history using CURRENT turn_num
@@ -442,9 +407,7 @@ def add_plan_presentation_to_state_history(
     in the CLI history.
     """
 
-    plan_str = format_plan_for_user(
-        state.planning
-    )
+    plan_str = format_plan_for_user(state.planning)
 
     state = add_assistant_response_to_state_history(
         state,
@@ -492,19 +455,12 @@ def complete_execution(state):
     # Session summary
     # --------------------------------------------------------
 
-    if (
-        hasattr(state, "memory_extraction")
-        and state.memory_extraction is not None
-    ):
+    if hasattr(state, "memory_extraction") and state.memory_extraction is not None:
 
-        summary = (
-            state.memory_extraction.session_summary
-        )
+        summary = state.memory_extraction.session_summary
 
         if summary:
-            st.session_state.past_session_summaries.append(
-                summary
-            )
+            st.session_state.past_session_summaries.append(summary)
 
     return state
 
@@ -590,27 +546,19 @@ def present_plan(state):
     # Add textual plan to internal CLI-compatible history.
     # --------------------------------------------------------
 
-    state, _ = (
-        add_plan_presentation_to_state_history(
-            state
-        )
-    )
+    state, _ = add_plan_presentation_to_state_history(state)
 
     # --------------------------------------------------------
     # Add structured plan to Streamlit UI.
     # --------------------------------------------------------
 
-    add_plan_message(
-        state.planning
-    )
+    add_plan_message(state.planning)
 
     state.plan_presented = True
 
     st.session_state.state = state
     st.session_state.pending_state = state
-    st.session_state.interaction_state = (
-        "plan_validation"
-    )
+    st.session_state.interaction_state = "plan_validation"
 
     st.session_state.turn_num = state.turn_num
 
@@ -632,9 +580,7 @@ def render_plan(planning_state):
 
     if planning_state.fulfillment_summary:
 
-        st.info(
-            planning_state.fulfillment_summary
-        )
+        st.info(planning_state.fulfillment_summary)
 
     st.markdown(
         f"**{len(planning_state.plan_steps)} "
@@ -664,21 +610,15 @@ def render_plan(planning_state):
 
         with st.container(border=True):
 
-            col1, col2, col3 = st.columns(
-                [0.12, 0.68, 0.20]
-            )
+            col1, col2, col3 = st.columns([0.12, 0.68, 0.20])
 
             with col1:
 
-                st.markdown(
-                    f"### {step_icon} {index}"
-                )
+                st.markdown(f"### {step_icon} {index}")
 
             with col2:
 
-                st.markdown(
-                    f"**{step.description}**"
-                )
+                st.markdown(f"**{step.description}**")
 
             with col3:
 
@@ -700,10 +640,7 @@ def render_plan(planning_state):
                     "high": "🔴 High Risk",
                 }
 
-                st.markdown(
-                    f"**Safety:** "
-                    f"{risk_labels.get(risk, risk)}"
-                )
+                st.markdown(f"**Safety:** " f"{risk_labels.get(risk, risk)}")
 
                 st.markdown("**Command**")
 
@@ -714,33 +651,21 @@ def render_plan(planning_state):
 
                 if command.description:
 
-                    st.markdown(
-                        f"**What it does:** "
-                        f"{command.description}"
-                    )
+                    st.markdown(f"**What it does:** " f"{command.description}")
 
                 col1, col2 = st.columns(2)
 
                 with col1:
 
-                    st.markdown(
-                        "**Execution mode**"
-                    )
+                    st.markdown("**Execution mode**")
 
-                    st.write(
-                        command.execution_mode
-                    )
+                    st.write(command.execution_mode)
 
                 with col2:
 
-                    st.markdown(
-                        "**Expected output**"
-                    )
+                    st.markdown("**Expected output**")
 
-                    st.write(
-                        command.expected_output
-                        or "No output"
-                    )
+                    st.write(command.expected_output or "No output")
 
                 # ------------------------------------------------
                 # Input variables
@@ -748,19 +673,13 @@ def render_plan(planning_state):
 
                 if command.input_variables:
 
-                    with st.expander(
-                        "Input variables"
-                    ):
+                    with st.expander("Input variables"):
 
                         for variable in command.input_variables:
 
-                            st.markdown(
-                                f"**`{variable.variable_name}`**"
-                            )
+                            st.markdown(f"**`{variable.variable_name}`**")
 
-                            st.caption(
-                                variable.description
-                            )
+                            st.caption(variable.description)
 
                 # ------------------------------------------------
                 # Output variables
@@ -768,19 +687,13 @@ def render_plan(planning_state):
 
                 if command.output_variables:
 
-                    with st.expander(
-                        "Output variables"
-                    ):
+                    with st.expander("Output variables"):
 
                         for variable in command.output_variables:
 
-                            st.markdown(
-                                f"**`{variable.variable_name}`**"
-                            )
+                            st.markdown(f"**`{variable.variable_name}`**")
 
-                            st.caption(
-                                variable.description
-                            )
+                            st.caption(variable.description)
 
             # ------------------------------------------------
             # Information step
@@ -790,10 +703,7 @@ def render_plan(planning_state):
 
                 information = step_details
 
-                st.markdown(
-                    f"**Information requested:** "
-                    f"{information.description}"
-                )
+                st.markdown(f"**Information requested:** " f"{information.description}")
 
             # ------------------------------------------------
             # Dependencies
@@ -802,19 +712,14 @@ def render_plan(planning_state):
             if step.dependencies_required:
 
                 dependencies = ", ".join(
-                    f"Step {i + 1}"
-                    for i in step.dependency_step_indices
+                    f"Step {i + 1}" for i in step.dependency_step_indices
                 )
 
-                st.markdown(
-                    f"🔗 **Depends on:** {dependencies}"
-                )
+                st.markdown(f"🔗 **Depends on:** {dependencies}")
 
             else:
 
-                st.markdown(
-                    "🔗 **Dependencies:** None"
-                )
+                st.markdown("🔗 **Dependencies:** None")
 
             # ------------------------------------------------
             # Iteration
@@ -822,9 +727,7 @@ def render_plan(planning_state):
 
             if step.requires_iteration:
 
-                st.markdown(
-                    "🔁 **This step requires iteration**"
-                )
+                st.markdown("🔁 **This step requires iteration**")
 
 
 # ============================================================
@@ -842,15 +745,11 @@ def render_conversation():
 
             if message["type"] == "text":
 
-                st.markdown(
-                    message["content"]
-                )
+                st.markdown(message["content"])
 
             elif message["type"] == "plan":
 
-                render_plan(
-                    message["planning_state"]
-                )
+                render_plan(message["planning_state"])
 
 
 # ============================================================
@@ -863,9 +762,7 @@ def initialize_session():
     if "backend" not in st.session_state:
 
         st.session_state.backend = OSHopeBackend(
-            parallel_execution_enabled=(
-                PARALLEL_EXECUTION_ENABLED
-            )
+            parallel_execution_enabled=(PARALLEL_EXECUTION_ENABLED)
         )
 
     if "state" not in st.session_state:
@@ -920,21 +817,12 @@ with st.sidebar:
 
     parallel_enabled = st.toggle(
         "Parallel Execution",
-        value=(
-            st.session_state
-            .backend
-            .parallel_execution_enabled
-        ),
+        value=(st.session_state.backend.parallel_execution_enabled),
     )
 
-    st.caption(
-        "Execute independent steps in parallel to reduce execution time."
-    )
-    
-    if (
-        parallel_enabled
-        != st.session_state.backend.parallel_execution_enabled
-    ):
+    st.caption("Execute independent steps in parallel to reduce execution time.")
+
+    if parallel_enabled != st.session_state.backend.parallel_execution_enabled:
 
         st.session_state.backend = OSHopeBackend(
             parallel_execution_enabled=parallel_enabled
@@ -962,8 +850,7 @@ with st.sidebar:
         st.rerun()
 
     st.caption(
-        f"Parallel execution: "
-        f"{'Enabled' if parallel_enabled else 'Disabled'}"
+        f"Parallel execution: " f"{'Enabled' if parallel_enabled else 'Disabled'}"
     )
 
 
@@ -999,15 +886,13 @@ render_conversation()
 
 if (
     st.session_state.pending_state is not None
-    and st.session_state.interaction_state
-    == "plan_validation"
+    and st.session_state.interaction_state == "plan_validation"
 ):
 
     st.divider()
 
     st.warning(
-        "Review the proposed plan carefully before "
-        "allowing OS-HOPE to proceed."
+        "Review the proposed plan carefully before " "allowing OS-HOPE to proceed."
     )
 
     col1, col2 = st.columns(2)
@@ -1035,27 +920,18 @@ if (
 
         state = st.session_state.pending_state
 
-        state.user_validation.user_feedback_type = (
-            "approve"
-        )
+        state.user_validation.user_feedback_type = "approve"
 
-        state.user_validation.is_validation_required = (
-            False
-        )
+        state.user_validation.is_validation_required = False
 
         state = add_user_response_to_state_history(
             state,
             "approve",
         )
 
-        with st.spinner(
-            "Executing approved plan..."
-        ):
+        with st.spinner("Executing approved plan..."):
 
-            state = (
-                st.session_state.backend
-                .run_execution(state)
-            )
+            state = st.session_state.backend.run_execution(state)
 
             state = complete_execution(state)
 
@@ -1086,10 +962,7 @@ if (
             "reject",
         )
 
-        response = (
-            "Execution cancelled. "
-            "The proposed plan was not approved."
-        )
+        response = "Execution cancelled. " "The proposed plan was not approved."
 
         state = present_assistant_response(
             state,
@@ -1108,9 +981,7 @@ if (
 # CHAT INPUT
 # ============================================================
 
-user_query = st.chat_input(
-    "Ask OS-HOPE to help with your operating system..."
-)
+user_query = st.chat_input("Ask OS-HOPE to help with your operating system...")
 
 
 if user_query:
@@ -1119,10 +990,7 @@ if user_query:
     # COGNITION FOLLOW-UP
     # ========================================================
 
-    if (
-        st.session_state.interaction_state
-        == "cognition_follow_up"
-    ):
+    if st.session_state.interaction_state == "cognition_follow_up":
 
         state = st.session_state.state
 
@@ -1131,9 +999,7 @@ if user_query:
             user_query,
         )
 
-        state.original_queries.append(
-            user_query
-        )
+        state.original_queries.append(user_query)
 
         state = add_user_response_to_state_history(
             state,
@@ -1148,13 +1014,10 @@ if user_query:
         # Execute one iteration.
         # ----------------------------------------------------
 
-        with st.spinner(
-            "Processing your clarification..."
-        ):
+        with st.spinner("Processing your clarification..."):
 
-            state, clarification_status = (
-                st.session_state.backend
-                .run_clarification(state)
+            state, clarification_status = st.session_state.backend.run_clarification(
+                state
             )
 
         # ----------------------------------------------------
@@ -1163,20 +1026,14 @@ if user_query:
 
         if clarification_status == "clarification_needed":
 
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
+            response = state.query_clarification.generated_response
 
             state = present_assistant_response(
                 state,
                 response,
             )
 
-            st.session_state.interaction_state = (
-                "clarification_from_cognition"
-            )
+            st.session_state.interaction_state = "clarification_from_cognition"
 
             sync_session_state(state)
 
@@ -1190,40 +1047,26 @@ if user_query:
         # state = self.new_state_from(state)
         # ----------------------------------------------------
 
-        state = (
-            st.session_state.backend
-            .new_state_from(state)
-        )
+        state = st.session_state.backend.new_state_from(state)
 
         # ----------------------------------------------------
         # CLI returns to handle_cognition()
         # ----------------------------------------------------
 
-        with st.spinner(
-            "Understanding your request..."
-        ):
+        with st.spinner("Understanding your request..."):
 
-            state, cognition_status = (
-                st.session_state.backend
-                .run_cognition(state)
-            )
+            state, cognition_status = st.session_state.backend.run_cognition(state)
 
         if cognition_status == "follow_up":
 
-            response = (
-                state
-                .query_classification
-                .generated_follow_up_response
-            )
+            response = state.query_classification.generated_follow_up_response
 
             state = present_assistant_response(
                 state,
                 response,
             )
 
-            st.session_state.interaction_state = (
-                "cognition_follow_up"
-            )
+            st.session_state.interaction_state = "cognition_follow_up"
 
             sync_session_state(state)
 
@@ -1233,31 +1076,20 @@ if user_query:
         # Cognition complete -> planning
         # ----------------------------------------------------
 
-        with st.spinner(
-            "Planning the requested operation..."
-        ):
+        with st.spinner("Planning the requested operation..."):
 
-            state, planning_status = (
-                st.session_state.backend
-                .run_planning(state)
-            )
+            state, planning_status = st.session_state.backend.run_planning(state)
 
         if planning_status == "clarification_needed":
 
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
+            response = state.query_clarification.generated_response
 
             state = present_assistant_response(
                 state,
                 response,
             )
 
-            st.session_state.interaction_state = (
-                "clarification_from_planning"
-            )
+            st.session_state.interaction_state = "clarification_from_planning"
 
             sync_session_state(state)
 
@@ -1265,20 +1097,13 @@ if user_query:
 
         if planning_status == "ready":
 
-            with st.spinner(
-                "Generating response..."
-            ):
+            with st.spinner("Generating response..."):
 
-                state = (
-                    st.session_state.backend
-                    .run_execution(state)
-                )
+                state = st.session_state.backend.run_execution(state)
 
                 state = complete_execution(state)
 
-            response = (
-                state.generated_final_response
-            )
+            response = state.generated_final_response
 
             state = present_assistant_response(
                 state,
@@ -1293,33 +1118,25 @@ if user_query:
 
         present_plan(state)
 
-
     # ========================================================
     # CLARIFICATION
     # ========================================================
 
-    elif (
-        st.session_state.interaction_state
-        in (
-            "clarification_from_cognition",
-            "clarification_from_planning",
-        )
+    elif st.session_state.interaction_state in (
+        "clarification_from_cognition",
+        "clarification_from_planning",
     ):
 
         state = st.session_state.state
 
-        clarification_origin = (
-            st.session_state.interaction_state
-        )
+        clarification_origin = st.session_state.interaction_state
 
         add_text_message(
             "user",
             user_query,
         )
 
-        state.original_queries.append(
-            user_query
-        )
+        state.original_queries.append(user_query)
 
         state = add_user_response_to_state_history(
             state,
@@ -1330,13 +1147,10 @@ if user_query:
         # One clarification iteration
         # ----------------------------------------------------
 
-        with st.spinner(
-            "Processing your clarification..."
-        ):
+        with st.spinner("Processing your clarification..."):
 
-            state, clarification_status = (
-                st.session_state.backend
-                .run_clarification(state)
+            state, clarification_status = st.session_state.backend.run_clarification(
+                state
             )
 
         # ----------------------------------------------------
@@ -1345,11 +1159,7 @@ if user_query:
 
         if clarification_status == "clarification_needed":
 
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
+            response = state.query_clarification.generated_response
 
             state = present_assistant_response(
                 state,
@@ -1357,9 +1167,7 @@ if user_query:
             )
 
             # Preserve the origin.
-            st.session_state.interaction_state = (
-                clarification_origin
-            )
+            st.session_state.interaction_state = clarification_origin
 
             sync_session_state(state)
 
@@ -1369,19 +1177,13 @@ if user_query:
         # Clarification finished
         # ----------------------------------------------------
 
-        state = (
-            st.session_state.backend
-            .new_state_from(state)
-        )
+        state = st.session_state.backend.new_state_from(state)
 
         # ====================================================
         # CLARIFICATION ORIGINATED FROM COGNITION
         # ====================================================
 
-        if (
-            clarification_origin
-            == "clarification_from_cognition"
-        ):
+        if clarification_origin == "clarification_from_cognition":
 
             # CLI:
             #
@@ -1391,31 +1193,20 @@ if user_query:
             #
             # Therefore cognition runs again.
 
-            with st.spinner(
-                "Understanding your request..."
-            ):
+            with st.spinner("Understanding your request..."):
 
-                state, cognition_status = (
-                    st.session_state.backend
-                    .run_cognition(state)
-                )
+                state, cognition_status = st.session_state.backend.run_cognition(state)
 
             if cognition_status == "follow_up":
 
-                response = (
-                    state
-                    .query_classification
-                    .generated_follow_up_response
-                )
+                response = state.query_classification.generated_follow_up_response
 
                 state = present_assistant_response(
                     state,
                     response,
                 )
 
-                st.session_state.interaction_state = (
-                    "cognition_follow_up"
-                )
+                st.session_state.interaction_state = "cognition_follow_up"
 
                 sync_session_state(state)
 
@@ -1438,14 +1229,9 @@ if user_query:
         #
         # ====================================================
 
-        with st.spinner(
-            "Continuing the plan..."
-        ):
+        with st.spinner("Continuing the plan..."):
 
-            state, planning_status = (
-                st.session_state.backend
-                .run_planning(state)
-            )
+            state, planning_status = st.session_state.backend.run_planning(state)
 
         # ----------------------------------------------------
         # Planner needs another clarification
@@ -1453,20 +1239,14 @@ if user_query:
 
         if planning_status == "clarification_needed":
 
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
+            response = state.query_clarification.generated_response
 
             state = present_assistant_response(
                 state,
                 response,
             )
 
-            st.session_state.interaction_state = (
-                "clarification_from_planning"
-            )
+            st.session_state.interaction_state = "clarification_from_planning"
 
             sync_session_state(state)
 
@@ -1478,20 +1258,13 @@ if user_query:
 
         if planning_status == "ready":
 
-            with st.spinner(
-                "Generating response..."
-            ):
+            with st.spinner("Generating response..."):
 
-                state = (
-                    st.session_state.backend
-                    .run_execution(state)
-                )
+                state = st.session_state.backend.run_execution(state)
 
                 state = complete_execution(state)
 
-            response = (
-                state.generated_final_response
-            )
+            response = state.generated_final_response
 
             state = present_assistant_response(
                 state,
@@ -1510,15 +1283,13 @@ if user_query:
 
         present_plan(state)
 
-
     # ========================================================
     # PLAN VALIDATION
     # ========================================================
 
     elif (
         st.session_state.pending_state is not None
-        and st.session_state.interaction_state
-        == "plan_validation"
+        and st.session_state.interaction_state == "plan_validation"
     ):
 
         add_text_message(
@@ -1528,9 +1299,7 @@ if user_query:
 
         state = st.session_state.pending_state
 
-        state.original_queries.append(
-            user_query
-        )
+        state.original_queries.append(user_query)
 
         state = add_user_response_to_state_history(
             state,
@@ -1541,14 +1310,9 @@ if user_query:
         # Validation
         # ----------------------------------------------------
 
-        with st.spinner(
-            "Processing your feedback..."
-        ):
+        with st.spinner("Processing your feedback..."):
 
-            state = (
-                st.session_state.backend
-                .run_validation(state)
-            )
+            state = st.session_state.backend.run_validation(state)
 
         # ----------------------------------------------------
         # Validation still required
@@ -1556,11 +1320,7 @@ if user_query:
 
         if state.user_validation.is_validation_required:
 
-            response = (
-                state
-                .user_validation
-                .generated_response
-            )
+            response = state.user_validation.generated_response
 
             state = present_assistant_response(
                 state,
@@ -1568,9 +1328,7 @@ if user_query:
             )
 
             st.session_state.pending_state = state
-            st.session_state.interaction_state = (
-                "plan_validation"
-            )
+            st.session_state.interaction_state = "plan_validation"
 
             sync_session_state(state)
 
@@ -1580,21 +1338,13 @@ if user_query:
         # UPDATE PLAN
         # ====================================================
 
-        if (
-            state.user_validation.user_feedback_type
-            == "update_plan"
-        ):
+        if state.user_validation.user_feedback_type == "update_plan":
 
             state.plan_presented = False
 
-            with st.spinner(
-                "Updating the plan..."
-            ):
+            with st.spinner("Updating the plan..."):
 
-                state, planning_status = (
-                    st.session_state.backend
-                    .run_planning(state)
-                )
+                state, planning_status = st.session_state.backend.run_planning(state)
 
             # ------------------------------------------------
             # Planner requests clarification
@@ -1602,11 +1352,7 @@ if user_query:
 
             if planning_status == "clarification_needed":
 
-                response = (
-                    state
-                    .query_clarification
-                    .generated_response
-                )
+                response = state.query_clarification.generated_response
 
                 state = present_assistant_response(
                     state,
@@ -1615,9 +1361,7 @@ if user_query:
 
                 st.session_state.pending_state = state
 
-                st.session_state.interaction_state = (
-                    "clarification_from_planning"
-                )
+                st.session_state.interaction_state = "clarification_from_planning"
 
                 sync_session_state(state)
 
@@ -1633,20 +1377,13 @@ if user_query:
         # VALIDATION COMPLETE -> EXECUTION
         # ====================================================
 
-        with st.spinner(
-            "Executing approved plan..."
-        ):
+        with st.spinner("Executing approved plan..."):
 
-            state = (
-                st.session_state.backend
-                .run_execution(state)
-            )
+            state = st.session_state.backend.run_execution(state)
 
             state = complete_execution(state)
 
-        response = (
-            state.generated_final_response
-        )
+        response = state.generated_final_response
 
         state = present_assistant_response(
             state,
@@ -1659,7 +1396,6 @@ if user_query:
         sync_session_state(state)
 
         st.rerun()
-
 
     # ========================================================
     # NEW QUERY
@@ -1683,24 +1419,15 @@ if user_query:
         state = OSHopeState()
 
         state.parallel_execution_enabled = (
-            st.session_state
-            .backend
-            .parallel_execution_enabled
+            st.session_state.backend.parallel_execution_enabled
         )
 
         # Preserve previous session summaries.
-        state.past_session_summaries = (
-            st.session_state
-            .past_session_summaries
-        )
+        state.past_session_summaries = st.session_state.past_session_summaries
 
-        state.original_queries.append(
-            user_query
-        )
+        state.original_queries.append(user_query)
 
-        state.turn_num = (
-            st.session_state.turn_num
-        )
+        state.turn_num = st.session_state.turn_num
 
         state = add_user_response_to_state_history(
             state,
@@ -1711,14 +1438,9 @@ if user_query:
         # COGNITION
         # ====================================================
 
-        with st.spinner(
-            "Understanding your request..."
-        ):
+        with st.spinner("Understanding your request..."):
 
-            state, cognition_status = (
-                st.session_state.backend
-                .run_cognition(state)
-            )
+            state, cognition_status = st.session_state.backend.run_cognition(state)
 
         # ====================================================
         # CLASSIFICATION FOLLOW-UP
@@ -1726,20 +1448,14 @@ if user_query:
 
         if cognition_status == "follow_up":
 
-            response = (
-                state
-                .query_classification
-                .generated_follow_up_response
-            )
+            response = state.query_classification.generated_follow_up_response
 
             state = present_assistant_response(
                 state,
                 response,
             )
 
-            st.session_state.interaction_state = (
-                "cognition_follow_up"
-            )
+            st.session_state.interaction_state = "cognition_follow_up"
 
             sync_session_state(state)
 
@@ -1749,14 +1465,9 @@ if user_query:
         # PLANNING
         # ====================================================
 
-        with st.spinner(
-            "Planning the requested operation..."
-        ):
+        with st.spinner("Planning the requested operation..."):
 
-            state, planning_status = (
-                st.session_state.backend
-                .run_planning(state)
-            )
+            state, planning_status = st.session_state.backend.run_planning(state)
 
         # ====================================================
         # PLANNER CLARIFICATION
@@ -1764,11 +1475,7 @@ if user_query:
 
         if planning_status == "clarification_needed":
 
-            response = (
-                state
-                .query_clarification
-                .generated_response
-            )
+            response = state.query_clarification.generated_response
 
             state = present_assistant_response(
                 state,
@@ -1779,9 +1486,7 @@ if user_query:
             # This clarification came from planning.
             # The next user response must return directly
             # to planning.
-            st.session_state.interaction_state = (
-                "clarification_from_planning"
-            )
+            st.session_state.interaction_state = "clarification_from_planning"
 
             sync_session_state(state)
 
@@ -1793,20 +1498,13 @@ if user_query:
 
         if planning_status == "ready":
 
-            with st.spinner(
-                "Generating response..."
-            ):
+            with st.spinner("Generating response..."):
 
-                state = (
-                    st.session_state.backend
-                    .run_execution(state)
-                )
+                state = st.session_state.backend.run_execution(state)
 
                 state = complete_execution(state)
 
-            response = (
-                state.generated_final_response
-            )
+            response = state.generated_final_response
 
             state = present_assistant_response(
                 state,

@@ -1,4 +1,3 @@
-
 import argparse
 import time
 
@@ -130,9 +129,7 @@ class OSHopeApp:
 
     def pause_timer(self):
         if self.timer_start is not None:
-            self.execution_time += (
-                time.perf_counter() - self.timer_start
-            )
+            self.execution_time += time.perf_counter() - self.timer_start
             self.timer_start = None
 
     def reset_timer(self):
@@ -174,9 +171,7 @@ class OSHopeApp:
         # Configuration
         # ------------------------------------------------------------
 
-        table = Table.grid(
-            padding=(0, 2)
-        )
+        table = Table.grid(padding=(0, 2))
 
         table.add_column(
             style="dim",
@@ -227,9 +222,7 @@ class OSHopeApp:
 
         self.console.print()
 
-        self.console.print(
-            "[dim]Type [bold]exit[/bold] at any time to quit.[/dim]"
-        )
+        self.console.print("[dim]Type [bold]exit[/bold] at any time to quit.[/dim]")
 
         self.console.print()
 
@@ -268,9 +261,7 @@ class OSHopeApp:
     def print_info(self, text):
         self.pause_timer()
 
-        self.console.print(
-            f"[dim]ℹ {text}[/dim]"
-        )
+        self.console.print(f"[dim]ℹ {text}[/dim]")
 
         self.resume_timer()
 
@@ -361,10 +352,7 @@ class OSHopeApp:
         ):
             self.voice_input_interface.service.reset()
             self.voice_input_interface.service.start_listening()
-            text = (
-                self.voice_input_interface.service
-                .transcribe_audio()
-            )
+            text = self.voice_input_interface.service.transcribe_audio()
 
         self.console.print()
 
@@ -395,9 +383,7 @@ class OSHopeApp:
     # ================================================================
 
     def render(self, text):
-        self.console.print(
-            Markdown(text)
-        )
+        self.console.print(Markdown(text))
 
     # ================================================================
     # HISTORY
@@ -408,9 +394,7 @@ class OSHopeApp:
             {
                 "turn_num": state.turn_num,
                 "user_query": state.original_queries[-1],
-                "assistant_response": (
-                    state.multi_turn_generated_responses[-1]
-                ),
+                "assistant_response": (state.multi_turn_generated_responses[-1]),
             }
         )
 
@@ -429,17 +413,11 @@ class OSHopeApp:
 
         new_state = OSHopeState()
 
-        new_state.finalized_enhanced_query = (
-            state.finalized_enhanced_query
-        )
+        new_state.finalized_enhanced_query = state.finalized_enhanced_query
 
-        new_state.parallel_execution_enabled = (
-            self.parallel_execution_enabled
-        )
+        new_state.parallel_execution_enabled = self.parallel_execution_enabled
 
-        new_state.original_queries = (
-            state.original_queries
-        )
+        new_state.original_queries = state.original_queries
 
         new_state.turn_num = state.turn_num
 
@@ -447,25 +425,15 @@ class OSHopeApp:
             state.multi_turn_conversation_history
         )
 
-        new_state.original_queries_enhanced = (
-            state.original_queries_enhanced
-        )
+        new_state.original_queries_enhanced = state.original_queries_enhanced
 
-        new_state.multi_turn_generated_responses = (
-            state.multi_turn_generated_responses
-        )
+        new_state.multi_turn_generated_responses = state.multi_turn_generated_responses
 
-        new_state.clarification_attempts = (
-            state.clarification_attempts
-        )
+        new_state.clarification_attempts = state.clarification_attempts
 
-        new_state.query_clarification = (
-            state.query_clarification
-        )
+        new_state.query_clarification = state.query_clarification
 
-        new_state.query_classification = (
-            state.query_classification
-        )
+        new_state.query_classification = state.query_classification
 
         return new_state
 
@@ -477,13 +445,9 @@ class OSHopeApp:
 
         while True:
 
-            self.print_section(
-                "Clarification"
-            )
+            self.print_section("Clarification")
 
-            state = self.cognition_graph.execute(
-                state
-            )
+            state = self.cognition_graph.execute(state)
 
             if DEBUG_MODE:
                 save_debug_state(
@@ -494,9 +458,7 @@ class OSHopeApp:
             if not state.query_clarification.is_clarification_needed:
                 return state
 
-            self.print_ai(
-                state.query_clarification.generated_response
-            )
+            self.print_ai(state.query_clarification.generated_response)
 
             state.multi_turn_generated_responses.append(
                 state.query_clarification.generated_response
@@ -506,9 +468,7 @@ class OSHopeApp:
 
             follow_up = self.get_input()
 
-            state.original_queries.append(
-                follow_up
-            )
+            state.original_queries.append(follow_up)
 
     # ================================================================
     # COGNITION
@@ -516,9 +476,7 @@ class OSHopeApp:
 
     def handle_cognition(self, state):
 
-        self.print_section(
-            "Understanding Request"
-        )
+        self.print_section("Understanding Request")
 
         while True:
 
@@ -529,9 +487,7 @@ class OSHopeApp:
                 console=self.console,
                 spinner="dots",
             ):
-                state = self.cognition_graph.execute(
-                    state
-                )
+                state = self.cognition_graph.execute(state)
 
             if DEBUG_MODE:
                 save_debug_state(
@@ -542,9 +498,7 @@ class OSHopeApp:
             if not state.query_classification.requires_follow_up:
                 return state
 
-            self.print_ai(
-                state.query_classification.generated_follow_up_response
-            )
+            self.print_ai(state.query_classification.generated_follow_up_response)
 
             state.multi_turn_generated_responses.append(
                 state.query_classification.generated_follow_up_response
@@ -554,19 +508,13 @@ class OSHopeApp:
 
             follow_up = self.get_input()
 
-            state.original_queries.append(
-                follow_up
-            )
+            state.original_queries.append(follow_up)
 
             # Deeper clarification
-            state = self.clarification_loop(
-                state
-            )
+            state = self.clarification_loop(state)
 
             # Reset cleanly
-            state = self.new_state_from(
-                state
-            )
+            state = self.new_state_from(state)
 
     # ================================================================
     # VALIDATION
@@ -591,18 +539,14 @@ class OSHopeApp:
 
         while True:
 
-            state = self.planning_graph.execute(
-                state
-            )
+            state = self.planning_graph.execute(state)
 
             if not state.user_validation.is_validation_required:
                 break
 
             self.print_validation_header()
 
-            self.print_ai(
-                state.user_validation.generated_response
-            )
+            self.print_ai(state.user_validation.generated_response)
 
             state.multi_turn_generated_responses.append(
                 state.user_validation.generated_response
@@ -612,9 +556,7 @@ class OSHopeApp:
 
             follow_up = self.get_input()
 
-            state.original_queries.append(
-                follow_up
-            )
+            state.original_queries.append(follow_up)
 
             if DEBUG_MODE:
                 save_debug_state(
@@ -711,17 +653,13 @@ class OSHopeApp:
 
         command = step.step_details
 
-        risk = self._risk_style(
-            command.safety_risk
-        )
+        risk = self._risk_style(command.safety_risk)
 
         # ------------------------------------------------------------
         # Metadata
         # ------------------------------------------------------------
 
-        metadata = Table.grid(
-            padding=(0, 2)
-        )
+        metadata = Table.grid(padding=(0, 2))
 
         metadata.add_column(
             style="dim",
@@ -749,11 +687,7 @@ class OSHopeApp:
 
         metadata.add_row(
             "Execution",
-            (
-                "⏳ Blocking"
-                if command.execution_mode == "blocking"
-                else "↗ Background"
-            ),
+            ("⏳ Blocking" if command.execution_mode == "blocking" else "↗ Background"),
         )
 
         if step.requires_iteration:
@@ -771,8 +705,7 @@ class OSHopeApp:
             if step.dependency_step_indices:
 
                 dependency_text = ", ".join(
-                    f"Step {index + 1}"
-                    for index in step.dependency_step_indices
+                    f"Step {index + 1}" for index in step.dependency_step_indices
                 )
 
             else:
@@ -808,9 +741,7 @@ class OSHopeApp:
         # Details
         # ------------------------------------------------------------
 
-        details = Table.grid(
-            padding=(0, 1)
-        )
+        details = Table.grid(padding=(0, 1))
 
         details.add_column(
             style="bold",
@@ -825,9 +756,7 @@ class OSHopeApp:
         )
 
         expected_output = (
-            command.expected_output
-            if command.expected_output
-            else "No output"
+            command.expected_output if command.expected_output else "No output"
         )
 
         details.add_row(
@@ -889,9 +818,7 @@ class OSHopeApp:
 
         details = step.step_details
 
-        metadata = Table.grid(
-            padding=(0, 2)
-        )
+        metadata = Table.grid(padding=(0, 2))
 
         metadata.add_column(
             style="dim",
@@ -922,8 +849,7 @@ class OSHopeApp:
             if step.dependency_step_indices:
 
                 dependency_text = ", ".join(
-                    f"Step {index + 1}"
-                    for index in step.dependency_step_indices
+                    f"Step {index + 1}" for index in step.dependency_step_indices
                 )
 
             else:
@@ -946,9 +872,7 @@ class OSHopeApp:
         # ------------------------------------------------------------
 
         information_panel = Panel(
-            Markdown(
-                details.description
-            ),
+            Markdown(details.description),
             title="[bold cyan]Information[/bold cyan]",
             border_style="cyan",
             padding=(1, 2),
@@ -1011,9 +935,7 @@ class OSHopeApp:
 
             self.console.print(
                 Panel(
-                    Markdown(
-                        planning.fulfillment_summary
-                    ),
+                    Markdown(planning.fulfillment_summary),
                     title="[bold cyan]Plan Summary[/bold cyan]",
                     border_style="cyan",
                     padding=(1, 2),
@@ -1117,9 +1039,7 @@ class OSHopeApp:
 
     def handle_planning(self, state):
 
-        self.print_section(
-            "Planning"
-        )
+        self.print_section("Planning")
 
         while True:
 
@@ -1128,9 +1048,7 @@ class OSHopeApp:
                 console=self.console,
                 spinner="dots",
             ):
-                state = self.planning_graph.execute(
-                    state
-                )
+                state = self.planning_graph.execute(state)
 
             if DEBUG_MODE:
                 save_debug_state(
@@ -1146,13 +1064,9 @@ class OSHopeApp:
 
                 state.query_clarification.is_clarification_needed = True
 
-                state = self.clarification_loop(
-                    state
-                )
+                state = self.clarification_loop(state)
 
-                state = self.new_state_from(
-                    state
-                )
+                state = self.new_state_from(state)
 
                 continue
 
@@ -1160,19 +1074,14 @@ class OSHopeApp:
             # Information query
             # --------------------------------------------------------
 
-            if (
-                state.query_classification.query_type
-                == "information"
-            ):
+            if state.query_classification.query_type == "information":
                 return state
 
             # --------------------------------------------------------
             # Present the generated plan
             # --------------------------------------------------------
 
-            self.display_plan(
-                state
-            )
+            self.display_plan(state)
 
             state.plan_presented = True
 
@@ -1185,17 +1094,11 @@ class OSHopeApp:
             # conversation history expects a text response.
             # --------------------------------------------------------
 
-            plan_str = format_plan_for_user(
-                state.planning
-            )
+            plan_str = format_plan_for_user(state.planning)
 
-            state.multi_turn_generated_responses.append(
-                plan_str
-            )
+            state.multi_turn_generated_responses.append(plan_str)
 
-            self.append_hist(
-                state
-            )
+            self.append_hist(state)
 
             # --------------------------------------------------------
             # Ask for human decision
@@ -1217,32 +1120,23 @@ class OSHopeApp:
 
             follow_up = self.get_input()
 
-            state.original_queries.append(
-                follow_up
-            )
+            state.original_queries.append(follow_up)
 
             # --------------------------------------------------------
             # Validation
             # --------------------------------------------------------
 
-            state = self.validation_loop(
-                state
-            )
+            state = self.validation_loop(state)
 
             # --------------------------------------------------------
             # User requested a plan update
             # --------------------------------------------------------
 
-            if (
-                state.user_validation.user_feedback_type
-                == "update_plan"
-            ):
+            if state.user_validation.user_feedback_type == "update_plan":
 
                 state.plan_presented = False
 
-                self.print_info(
-                    "Updating the plan based on your feedback..."
-                )
+                self.print_info("Updating the plan based on your feedback...")
 
                 continue
 
@@ -1258,20 +1152,11 @@ class OSHopeApp:
 
     def handle_execution(self, state):
 
-        self.print_section(
-            "Execution"
-        )
+        self.print_section("Execution")
 
-        mode = (
-            "parallel"
-            if self.parallel_execution_enabled
-            else "sequential"
-        )
+        mode = "parallel" if self.parallel_execution_enabled else "sequential"
 
-        self.console.print(
-            f"[dim]Execution mode: "
-            f"[bold]{mode}[/bold][/dim]"
-        )
+        self.console.print(f"[dim]Execution mode: " f"[bold]{mode}[/bold][/dim]")
 
         self.console.print()
 
@@ -1280,25 +1165,15 @@ class OSHopeApp:
             console=self.console,
             spinner="dots",
         ):
-            state = self.execution_graph.execute(
-                state
-            )
+            state = self.execution_graph.execute(state)
 
-        self.print_success(
-            "Execution completed."
-        )
+        self.print_success("Execution completed.")
 
-        self.print_ai(
-            state.generated_final_response
-        )
+        self.print_ai(state.generated_final_response)
 
-        state.multi_turn_generated_responses.append(
-            state.generated_final_response
-        )
+        state.multi_turn_generated_responses.append(state.generated_final_response)
 
-        self.append_hist(
-            state
-        )
+        self.append_hist(state)
 
         if DEBUG_MODE:
             save_debug_state(
@@ -1319,9 +1194,7 @@ class OSHopeApp:
             console=self.console,
             spinner="dots",
         ):
-            state = self.memory_graph.execute(
-                state
-            )
+            state = self.memory_graph.execute(state)
 
         if DEBUG_MODE:
             save_debug_state(
@@ -1358,21 +1231,13 @@ class OSHopeApp:
             padding=(0, 2),
         )
 
-        table.add_column(
-            style="dim"
-        )
+        table.add_column(style="dim")
 
-        table.add_column(
-            style="bold"
-        )
+        table.add_column(style="bold")
 
         table.add_row(
             "Execution mode",
-            (
-                "⚡ Parallel"
-                if self.parallel_execution_enabled
-                else "→ Sequential"
-            ),
+            ("⚡ Parallel" if self.parallel_execution_enabled else "→ Sequential"),
         )
 
         table.add_row(
@@ -1422,9 +1287,7 @@ class OSHopeApp:
 
             if not query:
 
-                self.print_warning(
-                    "Please enter a request."
-                )
+                self.print_warning("Please enter a request.")
 
                 continue
 
@@ -1436,41 +1299,29 @@ class OSHopeApp:
 
             state = OSHopeState()
 
-            state.parallel_execution_enabled = (
-                self.parallel_execution_enabled
-            )
+            state.parallel_execution_enabled = self.parallel_execution_enabled
 
-            state.past_session_summaries = (
-                past_session_summaries
-            )
+            state.past_session_summaries = past_session_summaries
 
-            state.original_queries.append(
-                query
-            )
+            state.original_queries.append(query)
 
             # --------------------------------------------------------
             # Cognition
             # --------------------------------------------------------
 
-            state = self.handle_cognition(
-                state
-            )
+            state = self.handle_cognition(state)
 
             # --------------------------------------------------------
             # Planning
             # --------------------------------------------------------
 
-            state = self.handle_planning(
-                state
-            )
+            state = self.handle_planning(state)
 
             # --------------------------------------------------------
             # Execution
             # --------------------------------------------------------
 
-            state = self.handle_execution(
-                state
-            )
+            state = self.handle_execution(state)
 
             # --------------------------------------------------------
             # Memory
@@ -1478,9 +1329,7 @@ class OSHopeApp:
 
             if not self.parallel_execution_enabled:
 
-                state = self.handle_memory(
-                    state
-                )
+                state = self.handle_memory(state)
 
             # --------------------------------------------------------
             # RAG
@@ -1488,17 +1337,13 @@ class OSHopeApp:
 
             if RAG_ENABLED:
 
-                state = self.handle_rag(
-                    state
-                )
+                state = self.handle_rag(state)
 
             # --------------------------------------------------------
             # Session summary
             # --------------------------------------------------------
 
-            past_session_summaries.append(
-                state.memory_extraction.session_summary
-            )
+            past_session_summaries.append(state.memory_extraction.session_summary)
 
             # --------------------------------------------------------
             # Timing
@@ -1506,9 +1351,7 @@ class OSHopeApp:
 
             self.pause_timer()
 
-            state.execution_time = (
-                self.execution_time
-            )
+            state.execution_time = self.execution_time
 
             # --------------------------------------------------------
             # Final debug state
@@ -1525,20 +1368,17 @@ class OSHopeApp:
             # Summary
             # --------------------------------------------------------
 
-            self.display_execution_summary(
-                state
-            )
+            self.display_execution_summary(state)
 
 
 # ====================================================================
 # ARGUMENT PARSING
 # ====================================================================
 
+
 def main():
 
-    parser = argparse.ArgumentParser(
-        description="OS-HOPE CLI"
-    )
+    parser = argparse.ArgumentParser(description="OS-HOPE CLI")
 
     parser.add_argument(
         "--voice",
@@ -1612,4 +1452,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

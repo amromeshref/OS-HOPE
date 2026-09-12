@@ -10,6 +10,7 @@ class OSHopeState(BaseModel):
     Represents the state of the OS-HOPE, including any relevant information
     about the current session, user preferences, and system status.
     """
+
     # ========== Parallel Processing ==========
     parallel_execution_enabled: bool = Field(
         default=False,
@@ -67,7 +68,8 @@ class OSHopeState(BaseModel):
     # ========== Query Classification ==========
 
     query_classification: QueryClassificationState = Field(
-        default=QueryClassificationState(), description="The classification of the user's query."
+        default=QueryClassificationState(),
+        description="The classification of the user's query.",
     )
 
     # This field should be updated by the parsing logic in the query classification node after receiving the response from the LLM

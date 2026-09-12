@@ -25,9 +25,7 @@ def code_error_handling_node(state: OSHopeState) -> OSHopeState:
     if state.num_error_executions == 0:
         human_message = get_first_human_message(state)
     else:
-        human_message = get_second_human_message(
-            state
-        )
+        human_message = get_second_human_message(state)
 
     response: CommandErrorHandlerState = llm_model.generate_response(
         system_message=sys_prompt,
