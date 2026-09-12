@@ -23,7 +23,7 @@ def retrieve_dependency_outputs(state: OSHopeState, current_step: Step) -> str:
         dep_output = None
         if state.planning.plan_steps[dep_idx].step_type == "command":
             dep_output = retrieve_execution_details(
-                state, dep_idx, parallel_execution_enabled=True
+                state, dep_idx
             )
         elif state.planning.plan_steps[dep_idx].step_type == "information":
             dep_output = retrieve_information_details(state, dep_idx)
@@ -39,6 +39,15 @@ def step_resolver_node(state: OSHopeState, step: Step) -> StepResolverState:
     logger.info("Starting step resolver node.")
 
     step_index = step.step_index
+
+    if step.step_type == "command":
+        if len(step.step_details.input_variables) == 0:
+            logger.info("No input variables for this command step. Skipping step resolver.")
+            return StepResolverState(
+                is_resolution_successful=True,
+                resolved_steps=[step],
+                resolution_reasoning="No input variables to resolve.",
+            )
 
     llm_model = LLMModel()
     sys_prompt = get_step_resolver_sys_prompt()
