@@ -97,6 +97,8 @@ Do NOT include:
 - Do not confuse the purposes of the two outputs.
 - Do not hallucinate information.
 - Use only information explicitly present in the inputs.
+
+You are NOT allowed to call any tool.
 """
     return prompt
 
