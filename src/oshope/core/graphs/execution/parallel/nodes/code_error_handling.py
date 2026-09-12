@@ -53,7 +53,4 @@ def code_error_handling_node(state: OSHopeState, step_index: int):
 
     logger.info("Completed code error handling node.")
 
-    return {
-        "step_index": step_index,
-        "success": True,
-    }
+    return response
