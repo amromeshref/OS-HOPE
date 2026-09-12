@@ -147,6 +147,35 @@ Set:
 - resolved_steps = [step1, step2, step3]
 
 --------------------------------------------------
+PLACEHOLDER SCOPE — CRITICAL
+--------------------------------------------------
+
+The placeholder syntax `$variable_name` refers ONLY to workflow
+variables produced by dependency steps.
+
+Do NOT treat standard shell environment variables as workflow
+placeholders.
+
+Shell environment variables include variables such as:
+- $HOME
+- $USER
+- $PATH
+- $PWD
+- $OLDPWD
+- $SHELL
+- $TERM
+- $LANG
+- $HOSTNAME
+- $LOGNAME
+- $TMPDIR
+- $XDG_CONFIG_HOME
+- $XDG_DATA_HOME
+- $XDG_CACHE_HOME
+
+These variables are resolved by the operating system/shell and MUST
+remain unchanged.
+
+--------------------------------------------------
 
 CRITICAL RULES:
 
