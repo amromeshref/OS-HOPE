@@ -81,6 +81,8 @@ FORBIDDEN:
 - Any terminal-style output (e.g., rm:, bash:, error logs) UNLESS it is explicitly provided in the input
 
 If no command results are provided, you MUST NOT mention command execution results at all.
+
+You are NOT allowed to call any tool.
 """
     return prompt
 
